@@ -237,9 +237,11 @@
   };
 
   function getCloudSettings() {
+    var defaultSupabaseUrl = 'https://tgwfmaqpwedudrqspuip.supabase.co';
+    var defaultSupabaseKey = 'sb_publishable_SUywLSqh13CxM3EC2WtvZw_ysAyXt7b';
     var base = window.VERTICE_CLOUD_CONFIG || {
-      provider: 'auto',
-      supabase: { url: '', anonKey: '' },
+      provider: 'supabase',
+      supabase: { url: defaultSupabaseUrl, anonKey: defaultSupabaseKey },
       firebase: { apiKey: '', projectId: '' }
     };
     try {
@@ -247,10 +249,10 @@
       if (saved) {
         var parsed = JSON.parse(saved);
         return {
-          provider: parsed.provider || base.provider || 'auto',
+          provider: parsed.provider || base.provider || 'supabase',
           supabase: {
-            url: (parsed.supabase && parsed.supabase.url) || (base.supabase && base.supabase.url) || '',
-            anonKey: (parsed.supabase && parsed.supabase.anonKey) || (base.supabase && base.supabase.anonKey) || ''
+            url: (parsed.supabase && parsed.supabase.url) || (base.supabase && base.supabase.url) || defaultSupabaseUrl,
+            anonKey: (parsed.supabase && parsed.supabase.anonKey) || (base.supabase && base.supabase.anonKey) || defaultSupabaseKey
           },
           firebase: {
             apiKey: (parsed.firebase && parsed.firebase.apiKey) || (base.firebase && base.firebase.apiKey) || '',
@@ -259,7 +261,17 @@
         };
       }
     } catch (e) {}
-    return base;
+    return {
+      provider: base.provider || 'supabase',
+      supabase: {
+        url: (base.supabase && base.supabase.url) || defaultSupabaseUrl,
+        anonKey: (base.supabase && base.supabase.anonKey) || defaultSupabaseKey
+      },
+      firebase: {
+        apiKey: (base.firebase && base.firebase.apiKey) || '',
+        projectId: (base.firebase && base.firebase.projectId) || ''
+      }
+    };
   }
 
   function getActiveCloudMode() {
@@ -402,6 +414,75 @@
     return Promise.resolve();
   }
 
+  function syncUserToCloud(userObj) {
+    var mode = getActiveCloudMode();
+    var cfg = getCloudSettings();
+    if (mode === 'supabase' && userObj && userObj.email) {
+      var url = cfg.supabase.url.replace(/\/$/, '') + '/rest/v1/accounts';
+      return fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': cfg.supabase.anonKey,
+          'Authorization': 'Bearer ' + cfg.supabase.anonKey,
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({
+          id: userObj.id || ('user-' + Date.now()),
+          name: userObj.name,
+          email: userObj.email.toLowerCase(),
+          password_hash: userObj.passwordHash,
+          role: userObj.role || 'user',
+          created_at: userObj.createdAt || new Date().toISOString()
+        })
+      }).catch(function () {});
+    }
+    return Promise.resolve();
+  }
+
+  function fetchUsersFromCloud(callback) {
+    var mode = getActiveCloudMode();
+    var cfg = getCloudSettings();
+    if (mode === 'supabase') {
+      var url = cfg.supabase.url.replace(/\/$/, '') + '/rest/v1/accounts?select=*&order=created_at.asc';
+      fetch(url, {
+        headers: {
+          'apikey': cfg.supabase.anonKey,
+          'Authorization': 'Bearer ' + cfg.supabase.anonKey
+        }
+      })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (rows) {
+          if (!Array.isArray(rows)) return;
+          if (rows.length === 0) {
+            var localUsers = loadLocalUsers();
+            localUsers.forEach(function (u) { syncUserToCloud(u); });
+            return;
+          }
+          var mapped = rows.map(function (r) {
+            return {
+              id: r.id,
+              name: r.name,
+              email: r.email,
+              passwordHash: r.password_hash,
+              role: r.role || 'user',
+              createdAt: r.created_at || new Date().toISOString()
+            };
+          });
+          var hasDefaultAdmin = mapped.some(function (u) {
+            return u.email.toLowerCase() === DEFAULT_ADMIN_USER.email.toLowerCase();
+          });
+          if (!hasDefaultAdmin) {
+            mapped.unshift(DEFAULT_ADMIN_USER);
+            syncUserToCloud(DEFAULT_ADMIN_USER);
+          }
+          saveLocalUsers(mapped);
+          if (callback) callback(mapped);
+        })
+        .catch(function () {});
+    }
+  }
+
   function fetchPostsFromCloud(callback) {
     var mode = getActiveCloudMode();
     var cfg = getCloudSettings();
@@ -415,29 +496,33 @@
       })
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (rows) {
-          if (Array.isArray(rows) && rows.length > 0) {
-            var mapped = rows.map(function (r) {
-              return {
-                id: r.id,
-                title: r.title,
-                category: r.category,
-                slug: r.slug,
-                excerpt: r.excerpt || '',
-                content: r.content || '',
-                coverKey: r.cover_key || 'hero-ocean-photo',
-                coverUrl: r.cover_url || '',
-                season: r.season || '',
-                duration: r.duration || '',
-                style: r.style || '',
-                readingTime: r.reading_time || '6 min de leitura',
-                tip: r.tip || '',
-                author: r.author || 'Curadoria VÉRTICE AZUL',
-                createdAt: r.created_at || new Date().toISOString()
-              };
-            });
-            saveLocalPosts(mapped);
-            if (callback) callback(mapped);
+          if (!Array.isArray(rows)) return;
+          if (rows.length === 0) {
+            var seedPosts = loadLocalPosts();
+            seedPosts.forEach(function (p) { syncPostToCloud(p); });
+            return;
           }
+          var mapped = rows.map(function (r) {
+            return {
+              id: r.id,
+              title: r.title,
+              category: r.category,
+              slug: r.slug,
+              excerpt: r.excerpt || '',
+              content: r.content || '',
+              coverKey: r.cover_key || 'hero-ocean-photo',
+              coverUrl: r.cover_url || '',
+              season: r.season || '',
+              duration: r.duration || '',
+              style: r.style || '',
+              readingTime: r.reading_time || '6 min de leitura',
+              tip: r.tip || '',
+              author: r.author || 'Curadoria VÉRTICE AZUL',
+              createdAt: r.created_at || new Date().toISOString()
+            };
+          });
+          saveLocalPosts(mapped);
+          if (callback) callback(mapped);
         })
         .catch(function () {});
     } else if (mode === 'firebase') {
@@ -1432,6 +1517,7 @@
           toggleRoleBtn.addEventListener('click', function () {
             u.role = u.role === 'admin' ? 'user' : 'admin';
             saveLocalUsers(users);
+            syncUserToCloud(u);
             renderAdminTables();
           });
           tdAct.appendChild(toggleRoleBtn);
@@ -1691,6 +1777,7 @@
 
       users.push(newUser);
       saveLocalUsers(users);
+      syncUserToCloud(newUser);
       saveActiveSession(newUser, remember);
 
       if (statusEl) {
@@ -2061,6 +2148,9 @@
   updateLiveUrlPreview();
   updateAccountUI();
   inspectUrlForSubpage();
+  fetchUsersFromCloud(function () {
+    renderAdminTables();
+  });
   fetchPostsFromCloud(function (cloudPosts) {
     syncCategoryFilterPills(cloudPosts);
     renderPostsGrid();
