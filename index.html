@@ -428,12 +428,12 @@
 
             <div class="form-field" id="field-supabase-url">
               <label for="input-supabase-url">Supabase Project URL</label>
-              <input type="url" id="input-supabase-url" placeholder="https://seu-projeto.supabase.co">
+              <input type="url" id="input-supabase-url" value="https://tgwfmaqpwedudrqspuip.supabase.co" placeholder="https://seu-projeto.supabase.co">
             </div>
 
             <div class="form-field" id="field-supabase-key">
-              <label for="input-supabase-key">Supabase Anon Public Key</label>
-              <input type="text" id="input-supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+              <label for="input-supabase-key">Supabase Publishable / Anon Key</label>
+              <input type="text" id="input-supabase-key" value="sb_publishable_SUywLSqh13CxM3EC2WtvZw_ysAyXt7b" placeholder="sb_publishable_...">
             </div>
 
             <div class="form-field" id="field-firebase-project" hidden>
@@ -455,7 +455,7 @@
           </form>
 
           <div class="sql-helper-box">
-            <h4>Script SQL para Supabase (cole no SQL Editor do Supabase se escolher Supabase):</h4>
+            <h4>Script SQL para criar as tabelas no seu Supabase (cole no SQL Editor do painel Supabase e clique em Run):</h4>
             <pre><code>create table if not exists public.posts (
   id text primary key,
   title text not null,
@@ -474,8 +474,22 @@
   created_at timestamptz default now()
 );
 alter table public.posts enable row level security;
+drop policy if exists "Leitura publica de posts" on public.posts;
 create policy "Leitura publica de posts" on public.posts for select using (true);
-create policy "Escrita de posts" on public.posts for all using (true) with check (true);</code></pre>
+drop policy if exists "Escrita de posts" on public.posts;
+create policy "Escrita de posts" on public.posts for all using (true) with check (true);
+
+create table if not exists public.accounts (
+  id text primary key,
+  name text not null,
+  email text unique not null,
+  password_hash text not null,
+  role text default 'user',
+  created_at timestamptz default now()
+);
+alter table public.accounts enable row level security;
+drop policy if exists "Acesso contas" on public.accounts;
+create policy "Acesso contas" on public.accounts for all using (true) with check (true);</code></pre>
           </div>
         </div>
       </div>
