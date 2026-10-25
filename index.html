@@ -129,21 +129,20 @@
       </div>
     </section>
 
-    <!-- ACCOUNT & ADMIN NAVIGATION BAR -->
-    <section class="account-bar-wrapper" id="conta" aria-label="Controle de conta e administração">
+    <!-- ACCOUNT NAVIGATION BAR -->
+    <section class="account-bar-wrapper" id="conta" aria-label="Controle de conta">
       <div class="account-bar-inner">
         <div class="account-status-info">
-          <span class="status-dot" id="cloud-status-dot" title="Status de armazenamento"></span>
+          <span class="status-dot" id="cloud-status-dot" title="Status de conexão"></span>
           <div class="account-status-text">
             <strong id="user-greeting-title">Visitante · Conta Desconectada</strong>
-            <span id="user-greeting-sub">Entre ou crie sua conta para salvar guias favoritos. Administradores podem publicar e editar subpáginas.</span>
+            <span id="user-greeting-sub">Entre na sua conta ou cadastre-se gratuitamente para salvar seus guias e roteiros favoritos.</span>
           </div>
         </div>
 
         <div class="account-bar-actions" id="logged-out-actions">
           <button type="button" class="btn-account-outline" id="btn-open-login">Entrar</button>
-          <button type="button" class="btn-account-outline" id="btn-open-register">Criar Conta</button>
-          <button type="button" class="btn-account-solid" id="btn-quick-admin" title="Entrar rapidamente com a conta de Administrador padrão">Acesso Admin</button>
+          <button type="button" class="btn-account-solid" id="btn-open-register">Criar Conta</button>
         </div>
 
         <div class="account-bar-actions" id="logged-in-actions" hidden>
@@ -241,7 +240,7 @@
           <h2 id="heading-publicacoes">Guias de Viagem &amp; Roteiros Publicados</h2>
           <p>Explore nossas subpáginas editoriais organizadas por país e destino. Cada publicação traz roteiros completos, melhor época, logística e dicas práticas.</p>
         </div>
-        <button type="button" class="btn-primary-blue" id="btn-new-post-cta">+ Publicar Novo Guia</button>
+        <button type="button" class="btn-primary-blue" id="btn-new-post-cta" hidden>+ Publicar Novo Guia</button>
       </div>
 
       <div class="posts-toolbar">
@@ -745,7 +744,7 @@ create policy "Acesso contas" on public.accounts for all using (true) with check
         <a href="#roteiros">Roteiros Sob Medida</a>
         <a href="#experiencias">Calendário Oceânico</a>
         <a href="#planejar">Planejar Viagem</a>
-        <a href="#conta" id="footer-account-link">Minha Conta / Admin</a>
+        <a href="#conta" id="footer-account-link">Minha Conta</a>
       </nav>
     </div>
   </footer>
@@ -764,7 +763,7 @@ create policy "Acesso contas" on public.accounts for all using (true) with check
       <!-- LOGIN FORM -->
       <form id="login-form" class="auth-form" novalidate>
         <h3 id="auth-modal-title">Acesse sua Conta</h3>
-        <p class="auth-subtitle">Entre com seu e-mail e senha para gerenciar postagens ou acessar seus roteiros salvos.</p>
+        <p class="auth-subtitle">Entre com seu e-mail e senha para acessar sua conta e seus roteiros salvos.</p>
 
         <div class="form-field">
           <label for="login-email">E-mail</label>
@@ -780,14 +779,6 @@ create policy "Acesso contas" on public.accounts for all using (true) with check
           <input type="checkbox" id="login-remember" checked>
           <span>Lembrar meu login neste dispositivo</span>
         </label>
-
-        <div class="admin-credentials-hint">
-          <div>
-            <strong>Conta Administrador Padrão:</strong>
-            <span><code>admin@verticeazul.com</code> · Senha: <code>Admin@123</code></span>
-          </div>
-          <button type="button" class="btn-fill-admin" id="btn-fill-admin-creds">Preencher Admin</button>
-        </div>
 
         <div class="auth-submit-stack">
           <button type="submit" class="btn-primary-blue full-width-btn">Entrar</button>
