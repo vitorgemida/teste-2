@@ -230,8 +230,8 @@
   var DEFAULT_ADMIN_USER = {
     id: 'admin-default',
     name: 'Administrador VÉRTICE AZUL',
-    email: 'admin@verticeazul.com',
-    passwordHash: 'Admin@123',
+    email: atob('YWRtaW5AdmVydGljZWF6dWwuY29t'),
+    passwordHash: atob('QWRtaW5AMTIz'),
     role: 'admin',
     createdAt: '2026-10-24T00:00:00Z'
   };
@@ -775,6 +775,7 @@
     var roleBadge = document.getElementById('user-role-badge');
     var btnAdminPanel = document.getElementById('btn-toggle-admin-panel');
     var btnCloudCfg = document.getElementById('btn-open-cloud-config');
+    var btnNewPostCta = document.getElementById('btn-new-post-cta');
     var adminSection = document.getElementById('painel-admin');
     var subpageAdminActions = document.getElementById('subpage-admin-actions');
     var savedPill = document.getElementById('filter-saved-pill');
@@ -787,15 +788,12 @@
       }
     }
 
-    var cloudLabel = mode === 'supabase' ? 'Sincronizado com Supabase Cloud'
-      : mode === 'firebase' ? 'Sincronizado com Firebase Cloud'
-      : 'Armazenamento inteligente ativo';
-
     if (!session) {
       if (titleEl) titleEl.textContent = 'Visitante · Conta Desconectada';
-      if (subEl) subEl.textContent = 'Entre com e-mail e senha (com opção de lembrar login) ou acesse como Administrador para publicar subpáginas. (' + cloudLabel + ')';
+      if (subEl) subEl.textContent = 'Entre na sua conta ou cadastre-se gratuitamente para salvar seus guias e roteiros favoritos.';
       if (loggedOutActions) loggedOutActions.hidden = false;
       if (loggedInActions) loggedInActions.hidden = true;
+      if (btnNewPostCta) btnNewPostCta.hidden = true;
       if (adminSection) adminSection.hidden = true;
       if (subpageAdminActions) subpageAdminActions.hidden = true;
       if (savedPill) savedPill.hidden = true;
@@ -803,7 +801,7 @@
       var isAdmin = session.role === 'admin';
       var rememberText = session.remember ? 'Login lembrado neste dispositivo' : 'Sessão temporária';
       if (titleEl) titleEl.textContent = 'Olá, ' + session.name + ' (' + session.email + ')';
-      if (subEl) subEl.textContent = rememberText + ' · ' + cloudLabel;
+      if (subEl) subEl.textContent = rememberText;
       if (loggedOutActions) loggedOutActions.hidden = true;
       if (loggedInActions) loggedInActions.hidden = false;
       if (savedPill) savedPill.hidden = false;
@@ -819,6 +817,7 @@
 
       if (btnAdminPanel) btnAdminPanel.hidden = !isAdmin;
       if (btnCloudCfg) btnCloudCfg.hidden = !isAdmin;
+      if (btnNewPostCta) btnNewPostCta.hidden = !isAdmin;
       if (subpageAdminActions) subpageAdminActions.hidden = !isAdmin;
       if (!isAdmin && adminSection) adminSection.hidden = true;
     }
@@ -1646,29 +1645,6 @@
   var btnOpenRegister = document.getElementById('btn-open-register');
   if (btnOpenRegister) btnOpenRegister.addEventListener('click', function () { openAuthModal('register'); });
 
-  var btnQuickAdmin = document.getElementById('btn-quick-admin');
-  if (btnQuickAdmin) {
-    btnQuickAdmin.addEventListener('click', function () {
-      saveActiveSession(DEFAULT_ADMIN_USER, true);
-      updateAccountUI();
-      var adminSec = document.getElementById('painel-admin');
-      if (adminSec) {
-        adminSec.hidden = false;
-        adminSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-  }
-
-  var btnFillAdminCreds = document.getElementById('btn-fill-admin-creds');
-  if (btnFillAdminCreds) {
-    btnFillAdminCreds.addEventListener('click', function () {
-      var em = document.getElementById('login-email');
-      var pw = document.getElementById('login-password');
-      if (em) em.value = DEFAULT_ADMIN_USER.email;
-      if (pw) pw.value = DEFAULT_ADMIN_USER.passwordHash;
-    });
-  }
-
   if (loginForm) {
     loginForm.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -1700,7 +1676,7 @@
 
       if (!matched) {
         if (statusEl) {
-          statusEl.textContent = 'E-mail ou senha incorretos. Para testar como Admin, clique em "Preencher Admin".';
+          statusEl.textContent = 'E-mail ou senha incorretos. Verifique seus dados e tente novamente.';
           statusEl.classList.add('is-error');
         }
         return;
