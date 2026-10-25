@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VICK | Diário de Viagens, Destinos e Experiências Únicas</title>
+  
+  <!-- Fontes Google: Cinzel (Logo sofisticada), Playfair Display (Títulos) e Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background-color: #f8fafc; color: #1e293b; line-height: 1.7; }
+    a { text-decoration: none; color: inherit; transition: all 0.3s ease; }
+    img { max-width: 100%; height: auto; display: block; }
+    .vick-container { width: 90%; max-width: 1220px; margin: 0 auto; }
+
+    /* TOPBAR */
+    .vick-topbar { background: #081225; color: #e0f2fe; font-size: 0.82rem; padding: 0.65rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+    .vick-topbar-flex { display: flex; justify-content: space-between; align-items: center; }
+    .vick-topbar-flex i { color: #38bdf8; margin-right: 0.4rem; }
+    .vick-topbar-social a { color: #e0f2fe; margin-left: 1.1rem; font-size: 0.95rem; }
+    .vick-topbar-social a:hover { color: #38bdf8; }
+
+    /* CABEÇALHO */
+    .vick-header-wrap { background: #ffffff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 14px rgba(15, 29, 56, 0.04); }
+    .vick-header-flex { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 0; }
+    .vick-brand-logo { display: flex; flex-direction: column; align-items: flex-start; }
+    .brand-logo-text { font-family: 'Cinzel', serif !important; font-size: 2.3rem !important; font-weight: 800 !important; letter-spacing: 0.28em !important; color: #081225 !important; text-transform: uppercase !important; line-height: 1 !important; position: relative !important; }
+    .brand-logo-text::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 36px; height: 3px; background: #0284c7; }
+    .brand-tagline-text { font-size: 0.62rem !important; letter-spacing: 0.26em !important; color: #1d437a !important; font-weight: 700 !important; margin-top: 0.4rem !important; text-transform: uppercase !important; }
+    .vick-nav ul { list-style: none; display: flex; gap: 1.8rem; align-items: center; }
+    .vick-nav a { font-size: 0.9rem; font-weight: 600; color: #0f1d38; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.3rem 0; }
+    .vick-nav a:hover, .vick-nav a.active { color: #0284c7; }
+
+    /* HERO BUSCA (PREFIRO VIAJAR STYLE) */
+    .vick-hero { background: linear-gradient(135deg, rgba(8, 18, 37, 0.88) 0%, rgba(15, 29, 56, 0.75) 100%), url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat; color: #ffffff; padding: 5.5rem 0 4.5rem; text-align: center; }
+    .hero-tag { display: inline-block; padding: 0.35rem 1.1rem; border-radius: 50px; background: rgba(2, 132, 199, 0.35); border: 1px solid #38bdf8; color: #e0f2fe; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1.2rem; }
+    .hero-title { font-family: 'Playfair Display', serif; font-size: 3.2rem; line-height: 1.2; margin-bottom: 1rem; font-weight: 700; }
+    .hero-subtitle { font-size: 1.15rem; color: #e0f2fe; max-width: 680px; margin: 0 auto 2.2rem; font-weight: 300; }
+    .hero-search-box { max-width: 620px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); border-radius: 50px; overflow: hidden; background: #ffffff; }
+    .hero-search-form { display: flex; align-items: center; }
+    .hero-search-input { width: 100%; padding: 1.1rem 1.5rem; border: none; outline: none; font-family: inherit; font-size: 0.98rem; color: #0f1d38; }
+    .hero-search-btn { background: #0284c7; color: #ffffff; border: none; padding: 0 1.8rem; height: 100%; font-size: 1.1rem; cursor: pointer; transition: background 0.3s; align-self: stretch; }
+    .hero-search-btn:hover { background: #0f1d38; }
+    .hero-trending-tags { margin-top: 1.4rem; font-size: 0.88rem; color: #bae6fd; }
+    .hero-trending-tags strong { color: #ffffff; margin-right: 0.4rem; }
+    .hero-trending-tags a { color: #e0f2fe; background: rgba(255, 255, 255, 0.12); padding: 0.25rem 0.75rem; border-radius: 20px; margin: 0 0.25rem; display: inline-block; transition: all 0.3s ease; }
+    .hero-trending-tags a:hover { background: #0284c7; color: #ffffff; }
+
+    /* BARRA DE PLANEJAMENTO & SERVIÇOS */
+    .vick-services-bar { background: #ffffff; padding: 2.5rem 0; border-bottom: 1px solid #e2e8f0; box-shadow: 0 4px 16px rgba(15, 29, 56, 0.04); }
+    .services-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.2rem; text-align: center; }
+    .service-card { background: #f0f7ff; border: 1px solid #e0f2fe; border-radius: 12px; padding: 1.4rem 0.8rem; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; gap: 0.6rem; cursor: pointer; }
+    .service-card:hover { background: #081225; color: #ffffff; transform: translateY(-4px); box-shadow: 0 10px 24px rgba(2, 132, 199, 0.16); border-color: #081225; }
+    .service-card i { font-size: 1.8rem; color: #0284c7; transition: color 0.3s; }
+    .service-card:hover i { color: #38bdf8; }
+    .service-title { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* SEÇÃO NOVIDADES & GRID */
+    .vick-section { padding: 4.5rem 0; }
+    .vick-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 1.2rem; }
+    .vick-section-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: #081225; position: relative; }
+    .vick-section-title::after { content: ''; position: absolute; bottom: -1.35rem; left: 0; width: 60px; height: 3px; background: #0284c7; }
+    .vick-category-filter { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .cat-filter-btn { background: #ffffff; border: 1px solid #cbd5e1; color: #475569; padding: 0.45rem 1.1rem; border-radius: 50px; font-size: 0.84rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+    .cat-filter-btn:hover, .cat-filter-btn.active { background: #0284c7; color: #ffffff; border-color: #0284c7; }
+
+    .vick-posts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+    .vick-post-card { background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 18px rgba(15, 29, 56, 0.06); border: 1px solid #e2e8f0; transition: all 0.35s ease; display: flex; flex-direction: column; }
+    .vick-post-card:hover { box-shadow: 0 16px 36px rgba(2, 132, 199, 0.16); transform: translateY(-5px); border-color: rgba(2, 132, 199, 0.3); }
+    .vick-card-thumb { height: 240px; overflow: hidden; background: #0f1d38; position: relative; }
+    .vick-card-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+    .vick-post-card:hover .vick-card-thumb img { transform: scale(1.08); }
+    .vick-card-body { padding: 1.8rem; display: flex; flex-direction: column; flex-grow: 1; }
+    .vick-post-meta { display: flex; gap: 1rem; font-size: 0.8rem; color: #64748b; margin-bottom: 0.7rem; }
+    .vick-post-meta i { color: #0284c7; margin-right: 0.3rem; }
+    .vick-card-title { font-family: 'Playfair Display', serif; font-size: 1.45rem; line-height: 1.35; color: #081225; margin-bottom: 0.9rem; font-weight: 600; }
+    .vick-card-snippet { color: #64748b; font-size: 0.92rem; line-height: 1.7; margin-bottom: 1.4rem; flex-grow: 1; }
+    .vick-btn-read { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 700; background: #0284c7; color: #ffffff !important; padding: 0.7rem 1.3rem; border-radius: 6px; cursor: pointer; border: none; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.05em; width: 100%; }
+    .vick-btn-read:hover { background: #081225; color: #ffffff !important; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3); }
+    .vick-card-full { display: none; font-size: 1rem; line-height: 1.8; color: #1e293b; margin: 1.4rem 0; border-top: 1px solid #e2e8f0; padding-top: 1.4rem; animation: vickFadeIn 0.35s ease; }
+    .vick-card-full p { margin-bottom: 1rem; }
+    @keyframes vickFadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* DESTINOS MAIS PROCURADOS */
+    .vick-destinos-section { background: #f0f7ff; padding: 4.5rem 0; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+    .destinos-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+    .destino-card { position: relative; height: 380px; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 20px rgba(15, 29, 56, 0.1); transition: all 0.4s ease; cursor: pointer; }
+    .destino-card:hover { transform: translateY(-6px); box-shadow: 0 16px 32px rgba(2, 132, 199, 0.25); }
+    .destino-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+    .destino-card:hover img { transform: scale(1.1); }
+    .destino-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(8, 18, 37, 0.9) 0%, rgba(8, 18, 37, 0.2) 60%, transparent 100%); display: flex; flex-direction: column; justify-content: flex-end; padding: 1.8rem; color: #ffffff; }
+    .destino-tag { font-size: 0.72rem; color: #38bdf8; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.3rem; }
+    .destino-name { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
+
+    /* DICAS ESSENCIAIS */
+    .vick-dicas-section { padding: 4.5rem 0; background: #ffffff; }
+    .dicas-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 3rem; }
+    .dicas-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem; margin-top: 1.5rem; }
+    .dica-item { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.4rem; background: #ffffff; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 0.95rem; font-weight: 600; color: #0f1d38; transition: all 0.3s ease; cursor: pointer; }
+    .dica-item:hover { border-color: #0284c7; background: #f0f7ff; color: #0284c7; transform: translateX(4px); }
+    .dica-item i { color: #0284c7; font-size: 1.1rem; }
+
+    /* NEWSLETTER */
+    .vick-newsletter-section { background: linear-gradient(135deg, #081225 0%, #0f1d38 50%, #162d54 100%); color: #ffffff; padding: 5rem 0; text-align: center; }
+    .newsletter-inner { max-width: 650px; margin: 0 auto; }
+    .newsletter-icon { width: 60px; height: 60px; border-radius: 50%; background: rgba(2, 132, 199, 0.3); border: 1px solid #38bdf8; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 1.5rem; color: #38bdf8; }
+    .newsletter-inner h2 { font-family: 'Playfair Display', serif; font-size: 2.4rem; margin-bottom: 0.8rem; }
+    .newsletter-inner p { color: #e0f2fe; font-size: 1rem; margin-bottom: 2rem; line-height: 1.7; }
+    .newsletter-form-row { display: flex; gap: 0.6rem; max-width: 520px; margin: 0 auto; }
+    .newsletter-form-row input { flex: 1; padding: 0.95rem 1.2rem; border-radius: 6px; border: none; font-size: 0.92rem; outline: none; }
+    .newsletter-form-row button { background: #0284c7; color: #ffffff; border: none; padding: 0 1.8rem; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.9rem; transition: background 0.3s; }
+    .newsletter-form-row button:hover { background: #38bdf8; color: #081225; }
+
+    /* RODAPÉ */
+    .vick-footer { background: #081225; color: #94a3b8; padding: 4rem 0 2rem; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+    .vick-footer-flex { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+
+    @media (max-width: 1024px) {
+      .services-grid { grid-template-columns: repeat(3, 1fr); }
+      .destinos-grid { grid-template-columns: repeat(2, 1fr); }
+      .vick-posts-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .vick-topbar-flex, .vick-header-flex, .vick-footer-flex, .vick-section-header { flex-direction: column; gap: 1.2rem; text-align: center; }
+      .vick-brand-logo { align-items: center; }
+      .hero-title { font-size: 2.3rem; }
+      .services-grid { grid-template-columns: repeat(2, 1fr); }
+      .destinos-grid, .vick-posts-grid, .dicas-grid { grid-template-columns: 1fr; }
+      .newsletter-form-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Topbar -->
+  <div class="vick-topbar">
+    <div class="vick-container vick-topbar-flex">
+      <span><i class="fa-solid fa-compass"></i> Diário de Viagens por Vick • Roteiros Exclusivos &amp; Experiências Únicas</span>
+      <div class="vick-topbar-social">
+        <a aria-label="Instagram" href="#"><i class="fa-brands fa-instagram"></i></a>
+        <a aria-label="YouTube" href="#"><i class="fa-brands fa-youtube"></i></a>
+        <a aria-label="TikTok" href="#"><i class="fa-brands fa-tiktok"></i></a>
+        <a aria-label="Pinterest" href="#"><i class="fa-brands fa-pinterest"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cabeçalho VICK -->
+  <header class="vick-header-wrap">
+    <div class="vick-container vick-header-flex">
+      <div class="vick-brand-logo">
+        <a class="brand-logo-text" href="index.html">VICK</a>
+        <span class="brand-tagline-text">DIÁRIO DE VIAGENS</span>
+      </div>
+
+      <nav class="vick-nav">
+        <ul>
+          <li><a class="active" href="index.html">Início</a></li>
+          <li><a href="#planeje">Planejamento</a></li>
+          <li><a href="#novidades">Roteiros</a></li>
+          <li><a href="#destinos">Destinos</a></li>
+          <li><a href="#dicas">Dicas</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero com Busca (Inspirado no Prefiro Viajar) -->
+  <div class="vick-hero">
+    <div class="vick-container">
+      <span class="hero-tag">DIÁRIO DE VIAGENS</span>
+      <h1 class="hero-title">Sua viagem dos sonhos começa aqui</h1>
+      <p class="hero-subtitle">Roteiros autênticos, hospedagens de charme e dicas práticas para viajantes exigentes.</p>
+
+      <div class="hero-search-box">
+        <form class="hero-search-form" onsubmit="event.preventDefault(); vickSearchPosts(document.getElementById('searchInput').value);">
+          <input class="hero-search-input" id="searchInput" placeholder="Para onde você quer viajar? (ex: Costa Amalfitana, Grécia...)" type="text">
+          <button class="hero-search-btn" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </form>
+      </div>
+
+      <div class="hero-trending-tags">
+        <strong>Mais buscados:</strong>
+        <a href="#" onclick="vickFilterSearch('Amalfitana'); return false;">Costa Amalfitana</a>
+        <a href="#" onclick="vickFilterSearch('Santorini'); return false;">Santorini</a>
+        <a href="#" onclick="vickFilterSearch('Suíça'); return false;">Alpes Suíços</a>
+        <a href="#" onclick="vickFilterSearch('Maldivas'); return false;">Maldivas</a>
+        <a href="#" onclick="vickFilterSearch('Mala'); return false;">Mala Inteligente</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de Serviços & Planejamento -->
+  <section class="vick-services-bar" id="planeje">
+    <div class="vick-container">
+      <div class="services-grid">
+        <div class="service-card">
+          <i class="fa-solid fa-plane-departure"></i>
+          <span class="service-title">Passagem Aérea</span>
+        </div>
+        <div class="service-card">
+          <i class="fa-solid fa-shield-heart"></i>
+          <span class="service-title">Seguro Viagem</span>
+        </div>
+        <div class="service-card">
+          <i class="fa-solid fa-hotel"></i>
+          <span class="service-title">Hotéis &amp; Resorts</span>
+        </div>
+        <div class="service-card">
+          <i class="fa-solid fa-sim-card"></i>
+          <span class="service-title">Chip &amp; eSIM</span>
+        </div>
+        <div class="service-card">
+          <i class="fa-solid fa-car"></i>
+          <span class="service-title">Aluguel de Carro</span>
+        </div>
+        <div class="service-card">
+          <i class="fa-solid fa-credit-card"></i>
+          <span class="service-title">Conta &amp; Câmbio</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Novidades no Blog (Grid 3 Colunas) -->
+  <main class="vick-container vick-section" id="novidades">
+    <div class="vick-section-header">
+      <h2 class="vick-section-title">Novidades no Diário de Viagens</h2>
+      <div class="vick-category-filter">
+        <button class="cat-filter-btn active" onclick="vickFilterCategory('all', this)">Todos</button>
+        <button class="cat-filter-btn" onclick="vickFilterCategory('Europa', this)">Europa</button>
+        <button class="cat-filter-btn" onclick="vickFilterCategory('Praias', this)">Praias</button>
+        <button class="cat-filter-btn" onclick="vickFilterCategory('Dicas', this)">Dicas</button>
+      </div>
+    </div>
+
+    <div class="vick-posts-grid" id="vickPostsGrid">
+      
+      <!-- Card 1 -->
+      <article class="vick-post-card" data-cat="Europa Praias">
+        <div class="vick-card-thumb">
+          <img src="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=80" alt="Costa Amalfitana">
+        </div>
+        <div class="vick-card-body">
+          <div class="vick-post-meta">
+            <span><i class="fa-regular fa-calendar"></i> 22 Out, 2026</span>
+            <span><i class="fa-regular fa-user"></i> Por Vick</span>
+          </div>
+          <h3 class="vick-card-title">Costa Amalfitana: Roteiro Perfeito de 7 Dias Entre Falésias e Águas Azuis</h3>
+          <div class="vick-card-snippet">Positano, Ravello, Capri e Amalfi: hotéis charmosos de frente para o Mediterrâneo e como se locomover pelas curvas mais famosas da Itália.</div>
+          <div class="vick-card-full">
+            <p><strong>Roteiro Detalhado de 7 Dias na Costa Amalfitana:</strong></p>
+            <p><strong>Dias 1 e 2 - Positano:</strong> Chegada, caminhada pelas ruelas de casinhas em tons pastéis e pôr do sol na Spiaggia Grande com massa fresca e frutos do mar.</p>
+            <p><strong>Dia 3 - A Nobreza de Ravello:</strong> Visita aos deslumbrantes jardins suspensos da Villa Rufolo e o famoso Terrazzo dell'Infinito na Villa Cimbrone, com vistas de tirar o fôlego.</p>
+            <p><strong>Dia 4 - Amalfi Histórica e Fiordo di Furore:</strong> Passeio pela Catedral de Santo André em Amalfi e parada no arco de ponte natural do Fiordo di Furore.</p>
+            <p><strong>Dia 5 - Ilha de Capri:</strong> Bate-volta matinal de balsa, passeio de barco ao redor dos Faraglioni e teleférico ao Monte Solaro em Anacapri.</p>
+            <p><strong>Dias 6 e 7 - Trilha dos Deuses e Cetara:</strong> Caminhada pela Sentiero degli Dei e encerramento relaxante na vila pesqueira tradicional de Cetara.</p>
+          </div>
+          <button class="vick-btn-read" onclick="vickTogglePost(this)" type="button">Ler Roteiro Completo <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="vick-post-card" data-cat="Europa Praias">
+        <div class="vick-card-thumb">
+          <img src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=800&q=80" alt="Santorini Grécia">
+        </div>
+        <div class="vick-card-body">
+          <div class="vick-post-meta">
+            <span><i class="fa-regular fa-calendar"></i> 18 Out, 2026</span>
+            <span><i class="fa-regular fa-user"></i> Por Vick</span>
+          </div>
+          <h3 class="vick-card-title">Além das Cúpulas de Santorini: Praias Secretas e Vilarejos Autênticos</h3>
+          <div class="vick-card-snippet">Fugindo do turismo tradicional para explorar vinícolas milenares, enseadas de águas calmas e restaurantes familiares em Megalochori.</div>
+          <div class="vick-card-full">
+            <p><strong>Dicas Exclusivas de Santorini:</strong></p>
+            <p><strong>Vilarejos de Megalochori e Pyrgos:</strong> Esqueça as multidões de Oia por uma tarde e caminhe por ruelas brancas medievais, onde você encontrará adegas escavadas na rocha vulcânica servindo o premiado vinho branco Assyrtiko.</p>
+            <p><strong>Red Beach & Vlychada:</strong> As falésias de rochas vermelhas e brancas esculpidas pelo vento oferecem um dos cenários de praia mais exóticos de todas as ilhas Cíclades.</p>
+            <p><strong>Pôr do Sol no Farol de Akrotiri:</strong> O segredo mais bem guardado da ponta sul da ilha para contemplar o sol se pondo no horizonte sem empurrões.</p>
+          </div>
+          <button class="vick-btn-read" onclick="vickTogglePost(this)" type="button">Ler Roteiro Completo <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </article>
+
+      <!-- Card 3 -->
+      <article class="vick-post-card" data-cat="Europa">
+        <div class="vick-card-thumb">
+          <img src="https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=800&q=80" alt="Alpes Suíços">
+        </div>
+        <div class="vick-card-body">
+          <div class="vick-post-meta">
+            <span><i class="fa-regular fa-calendar"></i> 12 Out, 2026</span>
+            <span><i class="fa-regular fa-user"></i> Por Vick</span>
+          </div>
+          <h3 class="vick-card-title">Glacier Express na Suíça: O Trem Panorâmico Mais Fascinante da Europa</h3>
+          <div class="vick-card-snippet">Como planejar a travessia de Zermatt até St. Moritz através de montanhas cobertas de neve, pontes vertiginosas e gastronomia de bordo.</div>
+          <div class="vick-card-full">
+            <p><strong>Guia Prático do Glacier Express:</strong></p>
+            <p><strong>A Rota:</strong> 8 horas de viagem passando por 291 pontes e 91 túneis em vagões panorâmicos com teto de vidro.</p>
+            <p><strong>Melhor Época:</strong> Inverno (para neve de conto de fadas) ou outono (para florestas douradas e picos nevados).</p>
+            <p><strong>Dica de Ouro:</strong> Reserve o almoço de três tempos servido diretamente no seu assento durante a subida do Oberalp Pass.</p>
+          </div>
+          <button class="vick-btn-read" onclick="vickTogglePost(this)" type="button">Ler Roteiro Completo <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </article>
+
+    </div>
+  </main>
+
+  <!-- Destinos Mais Procurados -->
+  <section class="vick-destinos-section" id="destinos">
+    <div class="vick-container">
+      <div class="vick-section-header" style="border-bottom-color: #cbd5e1;">
+        <h2 class="vick-section-title">Destinos Mais Procurados</h2>
+        <span style="color: #0284c7; font-weight: 600; font-size: 0.9rem;">Guias e Roteiros Detalhados</span>
+      </div>
+
+      <div class="destinos-grid">
+        <div class="destino-card">
+          <img alt="Costa Amalfitana" src="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=600&q=80">
+          <div class="destino-overlay">
+            <span class="destino-tag">ITÁLIA</span>
+            <div class="destino-name">Costa Amalfitana</div>
+          </div>
+        </div>
+        <div class="destino-card">
+          <img alt="Santorini Grécia" src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=600&q=80">
+          <div class="destino-overlay">
+            <span class="destino-tag">GRÉCIA</span>
+            <div class="destino-name">Santorini &amp; Ilhas</div>
+          </div>
+        </div>
+        <div class="destino-card">
+          <img alt="Alpes Suíços" src="https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=600&q=80">
+          <div class="destino-overlay">
+            <span class="destino-tag">SUÍÇA</span>
+            <div class="destino-name">Alpes &amp; Geleiras</div>
+          </div>
+        </div>
+        <div class="destino-card">
+          <img alt="Fernando de Noronha" src="https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=600&q=80">
+          <div class="destino-overlay">
+            <span class="destino-tag">BRASIL</span>
+            <div class="destino-name">Fernando de Noronha</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dicas de Ouro -->
+  <section class="vick-dicas-section" id="dicas">
+    <div class="vick-container">
+      <div class="dicas-box">
+        <div class="vick-section-header" style="margin-bottom: 1.5rem; border: none; padding: 0;">
+          <div>
+            <h2 class="vick-section-title">Dicas de Ouro da Vick</h2>
+            <p style="color: #64748b; font-size: 0.95rem; margin-top: 0.4rem;">Planejamento inteligente para economizar e viajar com tranquilidade</p>
+          </div>
+        </div>
+
+        <div class="dicas-grid">
+          <div class="dica-item"><i class="fa-solid fa-plane"></i> Como encontrar passagens aéreas com até 40% de desconto?</div>
+          <div class="dica-item"><i class="fa-solid fa-briefcase"></i> Mala de bordo para 15 dias na Europa: O guia definitivo</div>
+          <div class="dica-item"><i class="fa-solid fa-shield-virus"></i> Qual o melhor seguro viagem internacional para a Europa?</div>
+          <div class="dica-item"><i class="fa-solid fa-wifi"></i> Como ter internet 5G ilimitada no exterior sem pagar roaming</div>
+          <div class="dica-item"><i class="fa-solid fa-coins"></i> Câmbio inteligente: Cartão de débito global vale a pena?</div>
+          <div class="dica-item"><i class="fa-solid fa-camera-retro"></i> Como tirar fotos incríveis e espontâneas viajando sozinha</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter -->
+  <section class="vick-newsletter-section">
+    <div class="vick-container newsletter-inner">
+      <div class="newsletter-icon"><i class="fa-regular fa-paper-plane"></i></div>
+      <h2>O Clube de Viagens da Vick</h2>
+      <p>Receba quinzenalmente no seu e-mail guias em PDF exclusivos, cupons de hotéis boutique e relatos de novos destinos antes de todo mundo.</p>
+      <div class="newsletter-form-row">
+        <input placeholder="Seu melhor e-mail..." type="email">
+        <button type="button">Quero Receber</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Rodapé -->
+  <footer class="vick-footer">
+    <div class="vick-container vick-footer-flex">
+      <div class="vick-brand-logo">
+        <span class="brand-logo-text" style="color: #ffffff !important; font-size: 1.6rem !important;">VICK</span>
+        <span class="brand-tagline-text" style="color: #38bdf8 !important;">DIÁRIO DE VIAGENS</span>
+      </div>
+      <p>© 2026 Blog de Viagens VICK. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <script>
+    function vickTogglePost(btn) {
+      var card = btn.closest('.vick-post-card');
+      var snippet = card.querySelector('.vick-card-snippet');
+      var full = card.querySelector('.vick-card-full');
+      if (full.style.display === 'none' || full.style.display === '') {
+        snippet.style.display = 'none';
+        full.style.display = 'block';
+        btn.innerHTML = 'Recolher Roteiro <i class="fa-solid fa-chevron-up"></i>';
+        btn.style.background = '#081225';
+      } else {
+        full.style.display = 'none';
+        snippet.style.display = 'block';
+        btn.innerHTML = 'Ler Roteiro Completo <i class="fa-solid fa-arrow-right"></i>';
+        btn.style.background = '#0284c7';
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    function vickFilterSearch(term) {
+      document.getElementById('searchInput').value = term;
+      vickSearchPosts(term);
+    }
+
+    function vickSearchPosts(term) {
+      term = term.toLowerCase();
+      var cards = document.querySelectorAll('.vick-post-card');
+      cards.forEach(function(card) {
+        var text = card.innerText.toLowerCase();
+        if (text.indexOf(term) !== -1) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      document.getElementById('novidades').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function vickFilterCategory(cat, btn) {
+      var btns = document.querySelectorAll('.cat-filter-btn');
+      btns.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      var cards = document.querySelectorAll('.vick-post-card');
+      cards.forEach(function(card) {
+        var cardCat = card.getAttribute('data-cat') || '';
+        if (cat === 'all' || cardCat.indexOf(cat) !== -1) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
