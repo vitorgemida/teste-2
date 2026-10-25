@@ -1,0 +1,154 @@
+{
+  "regions": [
+    {
+      "id": "brand-logo",
+      "kind": "text",
+      "pixelBox": { "x": 96, "y": 26, "w": 220, "h": 38 },
+      "note": "VÉRTICE AZUL bold dark navy brand wordmark"
+    },
+    {
+      "id": "nav-destinos",
+      "kind": "text",
+      "pixelBox": { "x": 578, "y": 34, "w": 90, "h": 26 },
+      "note": "Destinos top navigation link label"
+    },
+    {
+      "id": "nav-roteiros",
+      "kind": "text",
+      "pixelBox": { "x": 698, "y": 34, "w": 194, "h": 26 },
+      "note": "Roteiros Sob Medida top navigation link label"
+    },
+    {
+      "id": "nav-experiencias",
+      "kind": "text",
+      "pixelBox": { "x": 923, "y": 34, "w": 124, "h": 26 },
+      "note": "Experiências top navigation link label"
+    },
+    {
+      "id": "nav-cta",
+      "kind": "control",
+      "pixelBox": { "x": 1078, "y": 21, "w": 198, "h": 54 },
+      "note": "Solid blue pill CTA button Planejar Viagem"
+    },
+    {
+      "id": "hero-ocean-photo",
+      "kind": "image",
+      "bleed": true,
+      "pixelBox": { "x": 36, "y": 98, "w": 1304, "h": 550 },
+      "note": "Aerial coastal photograph of deep blue ocean water, turquoise cove, and limestone cliffs"
+    },
+    {
+      "id": "hero-title",
+      "kind": "text",
+      "pixelBox": { "x": 240, "y": 184, "w": 896, "h": 164 },
+      "note": "Centered two-line white display headline Viagens Oceânicas Desenhadas Sob Medida"
+    },
+    {
+      "id": "hero-subtitle",
+      "kind": "text",
+      "pixelBox": { "x": 378, "y": 364, "w": 628, "h": 32 },
+      "note": "Centered white subheadline line beneath the main hero headline"
+    },
+    {
+      "id": "search-bar-shell",
+      "kind": "chrome",
+      "container": true,
+      "pixelBox": { "x": 174, "y": 442, "w": 1028, "h": 86 },
+      "note": "Rounded white search bar shell with translucent outer halo"
+    },
+    {
+      "id": "search-field-destino",
+      "kind": "control",
+      "parentId": "search-bar-shell",
+      "pixelBox": { "x": 190, "y": 454, "w": 292, "h": 62 },
+      "note": "Search input control with magnifier icon and Destino Costeiro label"
+    },
+    {
+      "id": "search-field-epoca",
+      "kind": "control",
+      "parentId": "search-bar-shell",
+      "pixelBox": { "x": 484, "y": 454, "w": 224, "h": 62 },
+      "note": "Dropdown selector control Época do Ano with chevron icon"
+    },
+    {
+      "id": "search-field-estilo",
+      "kind": "control",
+      "parentId": "search-bar-shell",
+      "pixelBox": { "x": 710, "y": 454, "w": 256, "h": 62 },
+      "note": "Dropdown selector control Estilo de Travessia with chevron icon"
+    },
+    {
+      "id": "search-submit-btn",
+      "kind": "control",
+      "parentId": "search-bar-shell",
+      "pixelBox": { "x": 980, "y": 456, "w": 206, "h": 58 },
+      "note": "Dark navy rounded button Buscar Roteiros"
+    },
+    {
+      "id": "card-1-frame",
+      "kind": "chrome",
+      "container": true,
+      "pixelBox": { "x": 120, "y": 574, "w": 362, "h": 194 },
+      "note": "Left white rounded card container frame"
+    },
+    {
+      "id": "card-1-photo",
+      "kind": "image",
+      "parentId": "card-1-frame",
+      "bleed": true,
+      "pixelBox": { "x": 130, "y": 586, "w": 342, "h": 182 },
+      "note": "Aerial coastal photograph of Greek islands and blue Aegean sea"
+    },
+    {
+      "id": "card-1-title",
+      "kind": "text",
+      "parentId": "card-1-frame",
+      "pixelBox": { "x": 146, "y": 716, "w": 200, "h": 50 },
+      "note": "White card title Ilhas Gregas and subtitle line"
+    },
+    {
+      "id": "card-2-frame",
+      "kind": "chrome",
+      "container": true,
+      "pixelBox": { "x": 507, "y": 574, "w": 362, "h": 194 },
+      "note": "Center white rounded card container frame"
+    },
+    {
+      "id": "card-2-photo",
+      "kind": "image",
+      "parentId": "card-2-frame",
+      "bleed": true,
+      "pixelBox": { "x": 517, "y": 586, "w": 342, "h": 182 },
+      "note": "Scenic photograph of Norwegian fjords with deep blue water and steep green mountains"
+    },
+    {
+      "id": "card-2-title",
+      "kind": "text",
+      "parentId": "card-2-frame",
+      "pixelBox": { "x": 533, "y": 716, "w": 290, "h": 50 },
+      "note": "White card title Fiordes da Noruega and subtitle line"
+    },
+    {
+      "id": "card-3-frame",
+      "kind": "chrome",
+      "container": true,
+      "pixelBox": { "x": 894, "y": 574, "w": 362, "h": 194 },
+      "note": "Right white rounded card container frame"
+    },
+    {
+      "id": "card-3-photo",
+      "kind": "image",
+      "parentId": "card-3-frame",
+      "bleed": true,
+      "pixelBox": { "x": 904, "y": 586, "w": 342, "h": 182 },
+      "note": "Coastal photograph of Amalfi Coast cliffside village and blue Mediterranean sea"
+    },
+    {
+      "id": "card-3-title",
+      "kind": "text",
+      "parentId": "card-3-frame",
+      "pixelBox": { "x": 920, "y": 716, "w": 260, "h": 50 },
+      "note": "White card title Costa Amalfitana and subtitle line"
+    }
+  ]
+}
