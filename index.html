@@ -90,7 +90,7 @@
     <h2 class="r-card-3-title" data-region="card-3-title">Costa Amalfitana</h2>
   </header>
 
-  <main>
+  <main id="main-content">
     <!-- CONTINUATION OF THE THREE DESTINATION CARDS -->
     <section class="destinations-continuation" id="destinos" aria-label="Detalhes dos destinos em destaque">
       <div class="destinations-captions-grid">
@@ -100,7 +100,9 @@
             <span>36°44'N · 24°25'E</span>
             <span>Maio a Outubro · 9 Dias</span>
           </div>
-          <button type="button" class="destination-select-btn" data-select-route="grecia" aria-pressed="true">Explorar roteiro nas Cíclades</button>
+          <div class="destination-card-actions">
+            <a href="grecia/ciclades-ocidentais-roteiro-ilhas-gregas" class="destination-select-btn" data-open-subpage="grecia/ciclades-ocidentais-roteiro-ilhas-gregas">Abrir guia das Cíclades</a>
+          </div>
         </article>
 
         <article class="destination-meta-panel" data-card-panel="noruega">
@@ -109,7 +111,9 @@
             <span>62°06'N · 07°12'E</span>
             <span>Junho a Agosto · 11 Dias</span>
           </div>
-          <button type="button" class="destination-select-btn" data-select-route="noruega" aria-pressed="false">Explorar roteiro nos Fiordes</button>
+          <div class="destination-card-actions">
+            <a href="noruega/fiordes-da-noruega-lofoten-guia-dicas" class="destination-select-btn" data-open-subpage="noruega/fiordes-da-noruega-lofoten-guia-dicas">Abrir guia dos Fiordes</a>
+          </div>
         </article>
 
         <article class="destination-meta-panel" data-card-panel="amalfi">
@@ -118,8 +122,362 @@
             <span>40°38'N · 14°36'E</span>
             <span>Maio a Setembro · 8 Dias</span>
           </div>
-          <button type="button" class="destination-select-btn" data-select-route="amalfi" aria-pressed="false">Explorar roteiro na Costa Amalfitana</button>
+          <div class="destination-card-actions">
+            <a href="italia/costa-amalfitana-capri-roteiro-completo" class="destination-select-btn" data-open-subpage="italia/costa-amalfitana-capri-roteiro-completo">Abrir guia de Amalfi</a>
+          </div>
         </article>
+      </div>
+    </section>
+
+    <!-- ACCOUNT & ADMIN NAVIGATION BAR -->
+    <section class="account-bar-wrapper" id="conta" aria-label="Controle de conta e administração">
+      <div class="account-bar-inner">
+        <div class="account-status-info">
+          <span class="status-dot" id="cloud-status-dot" title="Status de armazenamento"></span>
+          <div class="account-status-text">
+            <strong id="user-greeting-title">Visitante · Conta Desconectada</strong>
+            <span id="user-greeting-sub">Entre ou crie sua conta para salvar guias favoritos. Administradores podem publicar e editar subpáginas.</span>
+          </div>
+        </div>
+
+        <div class="account-bar-actions" id="logged-out-actions">
+          <button type="button" class="btn-account-outline" id="btn-open-login">Entrar</button>
+          <button type="button" class="btn-account-outline" id="btn-open-register">Criar Conta</button>
+          <button type="button" class="btn-account-solid" id="btn-quick-admin" title="Entrar rapidamente com a conta de Administrador padrão">Acesso Admin</button>
+        </div>
+
+        <div class="account-bar-actions" id="logged-in-actions" hidden>
+          <span class="role-badge" id="user-role-badge">Viajante</span>
+          <button type="button" class="btn-account-solid" id="btn-toggle-admin-panel" hidden>Painel Admin · Postagens</button>
+          <button type="button" class="btn-account-outline" id="btn-open-cloud-config" hidden>Banco em Nuvem</button>
+          <button type="button" class="btn-account-outline" id="btn-logout">Sair da Conta</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUBPAGE VIEW (Rendered when visiting /<pais>/<slug-do-post>) -->
+    <section class="subpage-container" id="subpage-view" hidden aria-live="polite">
+      <div class="subpage-inner">
+        <div class="subpage-topbar">
+          <button type="button" class="btn-back-home" id="btn-subpage-back">← Voltar para todos os guias</button>
+          <nav class="subpage-breadcrumb" aria-label=" Caminho da subpágina">
+            <a href="#publicacoes" id="breadcrumb-home">Página Inicial</a>
+            <span>/</span>
+            <span id="breadcrumb-category">brasil</span>
+            <span>/</span>
+            <strong id="breadcrumb-slug">sao-joao-de-caruaru-festa-junina-guia-dicas</strong>
+          </nav>
+          <div class="subpage-url-box">
+            <code id="subpage-full-url">/brasil/sao-joao-de-caruaru-festa-junina-guia-dicas</code>
+            <button type="button" class="btn-copy-url" id="btn-copy-subpage-url">Copiar URL</button>
+          </div>
+        </div>
+
+        <article class="subpage-article">
+          <header class="subpage-header">
+            <div class="subpage-meta-row">
+              <span class="post-category-pill" id="subpage-category-pill">Brasil</span>
+              <span class="subpage-date-read" id="subpage-date-read">Publicado em 24 Out 2026 · 7 min de leitura</span>
+              <span class="subpage-author" id="subpage-author">Por Curadoria VÉRTICE AZUL</span>
+            </div>
+            <h1 id="subpage-title">São João de Caruaru: Guia Completo e Dicas para a Festa Junina</h1>
+            <p class="subpage-lead" id="subpage-excerpt">Como planejar sua viagem para a maior festa junina do Brasil no Agreste Pernambucano: polos culturais, gastronomia típica do Alto do Moura, hospedagem e roteiro dia a dia.</p>
+
+            <div class="subpage-admin-bar" id="subpage-admin-actions" hidden>
+              <span>Modo Administrador:</span>
+              <button type="button" class="btn-admin-inline" id="btn-subpage-edit">Editar esta Postagem</button>
+              <button type="button" class="btn-admin-inline" id="btn-subpage-download-html">Baixar HTML da Subpágina</button>
+              <button type="button" class="btn-admin-inline is-danger" id="btn-subpage-delete">Excluir Postagem</button>
+            </div>
+          </header>
+
+          <figure class="subpage-cover-figure">
+            <img id="subpage-cover-img" src="assets/plates/hero-ocean-photo.png" alt="Imagem de capa da publicação">
+          </figure>
+
+          <div class="subpage-body-grid">
+            <div class="subpage-content-prose" id="subpage-content-body"></div>
+
+            <aside class="subpage-sidebar" aria-label="Ficha prática do destino">
+              <div class="subpage-facts-card">
+                <h3>Ficha Rápida do Destino</h3>
+                <div class="subpage-fact-item">
+                  <span>País / Categoria</span>
+                  <strong id="fact-category">Brasil</strong>
+                </div>
+                <div class="subpage-fact-item">
+                  <span>Melhor Época</span>
+                  <strong id="fact-season">Junho a Julho</strong>
+                </div>
+                <div class="subpage-fact-item">
+                  <span>Duração Sugerida</span>
+                  <strong id="fact-duration">4 a 5 dias</strong>
+                </div>
+                <div class="subpage-fact-item">
+                  <span>Estilo de Viagem</span>
+                  <strong id="fact-style">Cultura &amp; Gastronomia</strong>
+                </div>
+                <div class="subpage-tip-callout">
+                  <strong>Dica da Curadoria</strong>
+                  <p id="fact-tip">Reserve hospedagem com 60 dias de antecedência e dedique uma tarde inteira aos ateliês de cerâmica figurativa no Alto do Moura.</p>
+                </div>
+                <button type="button" class="btn-bookmark-post" id="btn-bookmark-subpage">Salvar Guia na Minha Conta</button>
+              </div>
+            </aside>
+          </div>
+        </article>
+
+        <div class="subpage-related-section">
+          <h3>Outras Subpáginas e Guias de Viagem</h3>
+          <div class="posts-grid" id="subpage-related-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN EDITORIAL POSTS PORTAL (#publicacoes) -->
+    <section class="section-container posts-portal-section" id="publicacoes" aria-labelledby="heading-publicacoes">
+      <div class="posts-portal-header">
+        <div>
+          <h2 id="heading-publicacoes">Guias de Viagem &amp; Roteiros Publicados</h2>
+          <p>Explore nossas subpáginas editoriais organizadas por país e destino. Cada publicação traz roteiros completos, melhor época, logística e dicas práticas.</p>
+        </div>
+        <button type="button" class="btn-primary-blue" id="btn-new-post-cta">+ Publicar Novo Guia</button>
+      </div>
+
+      <div class="posts-toolbar">
+        <div class="posts-category-filters" id="posts-category-filters" role="tablist" aria-label="Filtrar postagens por país ou categoria">
+          <button type="button" class="category-filter-pill is-active" data-filter-cat="all">Todos os Destinos</button>
+          <button type="button" class="category-filter-pill" data-filter-cat="brasil">Brasil</button>
+          <button type="button" class="category-filter-pill" data-filter-cat="grecia">Grécia</button>
+          <button type="button" class="category-filter-pill" data-filter-cat="noruega">Noruega</button>
+          <button type="button" class="category-filter-pill" data-filter-cat="italia">Itália</button>
+          <button type="button" class="category-filter-pill" data-filter-cat="saved" id="filter-saved-pill" hidden>Salvos na Conta</button>
+        </div>
+
+        <div class="posts-search-box">
+          <input type="search" id="posts-search-input" placeholder="Buscar guia (ex.: Caruaru, Cíclades, Lofoten, Amalfi)..." aria-label="Buscar postagens por palavra-chave">
+        </div>
+      </div>
+
+      <div class="posts-grid" id="main-posts-grid" aria-live="polite"></div>
+    </section>
+
+    <!-- ADMIN DASHBOARD SECTION (#painel-admin) -->
+    <section class="section-container admin-panel-section" id="painel-admin" hidden aria-labelledby="heading-admin">
+      <div class="admin-panel-shell">
+        <div class="admin-panel-header">
+          <div>
+            <h2 id="heading-admin">Central do Administrador · Gerenciador de Postagens e Subpáginas</h2>
+            <p>Crie novas subpáginas no formato <code>/pais/slug-da-postagem</code>, edite guias publicados, gerencie contas e configure a sincronização com Firebase ou Supabase.</p>
+          </div>
+          <div class="admin-tabs-nav" role="tablist">
+            <button type="button" class="admin-tab-btn is-active" data-admin-tab="editor">Editor de Postagens</button>
+            <button type="button" class="admin-tab-btn" data-admin-tab="accounts">Contas Registradas</button>
+            <button type="button" class="admin-tab-btn" data-admin-tab="cloud">Banco em Nuvem (Firebase / Supabase)</button>
+          </div>
+        </div>
+
+        <!-- TAB 1: POST EDITOR -->
+        <div class="admin-tab-pane" id="admin-tab-editor">
+          <form id="admin-post-form" novalidate>
+            <input type="hidden" id="post-edit-id" value="">
+            <div class="admin-form-grid">
+              <div class="form-field full-span">
+                <label for="post-title-input">Título da Postagem / Guia</label>
+                <input type="text" id="post-title-input" placeholder="Ex.: São João de Caruaru: Festa Junina, Guia e Dicas" required>
+              </div>
+
+              <div class="form-field">
+                <label for="post-category-input">País / Pasta da Subpágina (sem acentos)</label>
+                <input type="text" id="post-category-input" placeholder="Ex.: brasil, grecia, portugal, noruega" value="brasil" required>
+              </div>
+
+              <div class="form-field">
+                <label for="post-slug-input">Slug da Subpágina (gerado automaticamente ou editável)</label>
+                <input type="text" id="post-slug-input" placeholder="Ex.: sao-joao-de-caruaru-festa-junina-guia-dicas" required>
+              </div>
+
+              <div class="form-field full-span">
+                <div class="url-preview-banner">
+                  <span>URL da Subpágina Gerada:</span>
+                  <strong id="live-subpage-url-preview">https://seusite.github.io/brasil/sao-joao-de-caruaru-festa-junina-guia-dicas</strong>
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label for="post-cover-preset">Imagem de Capa (Catálogo ou Personalizada)</label>
+                <select id="post-cover-preset">
+                  <option value="hero-ocean-photo">Enseada Turquesa &amp; Falésias (Catálogo)</option>
+                  <option value="card-1-photo">Ilhas Gregas &amp; Mar Egeu (Catálogo)</option>
+                  <option value="card-2-photo">Fiordes da Noruega (Catálogo)</option>
+                  <option value="card-3-photo">Costa Amalfitana (Catálogo)</option>
+                  <option value="custom">URL Externa ou Upload do Computador</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="post-cover-url">URL da Imagem ou Upload Local</label>
+                <div class="cover-upload-row">
+                  <input type="url" id="post-cover-url" placeholder="https://exemplo.com/foto.jpg">
+                  <label class="btn-upload-file" for="post-cover-file">Enviar Foto</label>
+                  <input type="file" id="post-cover-file" accept="image/*" hidden>
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label for="post-season-input">Melhor Época</label>
+                <input type="text" id="post-season-input" placeholder="Ex.: Junho a Julho">
+              </div>
+
+              <div class="form-field">
+                <label for="post-duration-input">Duração Sugerida</label>
+                <input type="text" id="post-duration-input" placeholder="Ex.: 4 a 5 dias">
+              </div>
+
+              <div class="form-field">
+                <label for="post-style-input">Estilo de Viagem</label>
+                <input type="text" id="post-style-input" placeholder="Ex.: Cultura, Gastronomia &amp; Roteiro Regional">
+              </div>
+
+              <div class="form-field">
+                <label for="post-reading-input">Tempo de Leitura</label>
+                <input type="text" id="post-reading-input" placeholder="Ex.: 6 min de leitura" value="6 min de leitura">
+              </div>
+
+              <div class="form-field full-span">
+                <label for="post-excerpt-input">Resumo / Chamada Principal (aparece no card e no topo da subpágina)</label>
+                <input type="text" id="post-excerpt-input" placeholder="Resumo direto sobre o que o viajante encontrará neste guia..." required>
+              </div>
+
+              <div class="form-field full-span">
+                <label for="post-tip-input">Dica de Ouro da Curadoria (destaque na barra lateral da subpágina)</label>
+                <input type="text" id="post-tip-input" placeholder="Ex.: Chegue cedo ao Alto do Moura para visitar os ateliês antes do fluxo principal.">
+              </div>
+
+              <div class="form-field full-span">
+                <div class="editor-label-row">
+                  <label for="post-content-input">Conteúdo Completo da Postagem (use <code>## Título de Seção</code> e <code>- Item de lista</code>)</label>
+                  <div class="editor-quick-tools">
+                    <button type="button" class="btn-editor-tool" data-insert-md="## ">+ Subtítulo</button>
+                    <button type="button" class="btn-editor-tool" data-insert-md="- ">+ Lista</button>
+                    <button type="button" class="btn-editor-tool" data-insert-md="> Dica prática: ">+ Caixa de Dica</button>
+                  </div>
+                </div>
+                <textarea id="post-content-input" rows="10" placeholder="Escreva aqui o guia completo da subpágina..." required></textarea>
+              </div>
+            </div>
+
+            <div class="planner-submit-row">
+              <button type="submit" class="btn-primary-blue" id="btn-save-post">Publicar Subpágina</button>
+              <button type="button" class="btn-account-outline" id="btn-reset-post-form">Limpar Formulário</button>
+              <span class="form-status-msg" id="admin-post-status" role="status" aria-live="polite"></span>
+            </div>
+          </form>
+
+          <div class="admin-existing-posts">
+            <h3>Subpáginas Publicadas no Portal</h3>
+            <div class="admin-posts-table-wrap">
+              <table class="seasonal-table admin-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Título do Guia</th>
+                    <th scope="col">Subpágina (URL)</th>
+                    <th scope="col">Data</th>
+                    <th scope="col">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-posts-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: ACCOUNTS MANAGEMENT -->
+        <div class="admin-tab-pane" id="admin-tab-accounts" hidden>
+          <h3>Contas de Usuários e Administradores</h3>
+          <p class="admin-subtext">Gerencie os usuários cadastrados. Você pode conceder ou remover permissão de Administrador para qualquer conta registrada.</p>
+          <div class="admin-posts-table-wrap">
+            <table class="seasonal-table admin-table">
+              <thead>
+                <tr>
+                  <th scope="col">Nome</th>
+                  <th scope="col">E-mail</th>
+                  <th scope="col">Perfil</th>
+                  <th scope="col">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 3: CLOUD DATABASE CONFIG (SUPABASE / FIREBASE) -->
+        <div class="admin-tab-pane" id="admin-tab-cloud" hidden>
+          <h3>Conexão com Banco em Nuvem (Supabase / Firebase)</h3>
+          <p class="admin-subtext">O site possui sincronização híbrida inteligente: funciona imediatamente no seu navegador e, assim que você preencher as chaves do seu projeto Supabase ou Firebase abaixo (ou no arquivo <code>cloud-config.js</code>), passa a salvar todas as contas e postagens na nuvem.</p>
+
+          <form id="cloud-config-form" class="admin-form-grid" novalidate>
+            <div class="form-field full-span">
+              <label for="cloud-provider-select">Provedor de Banco em Nuvem</label>
+              <select id="cloud-provider-select">
+                <option value="supabase">Supabase (PostgreSQL + Auth REST)</option>
+                <option value="firebase">Firebase (Cloud Firestore + Auth REST)</option>
+                <option value="local">Apenas Armazenamento Local (Sem nuvem)</option>
+              </select>
+            </div>
+
+            <div class="form-field" id="field-supabase-url">
+              <label for="input-supabase-url">Supabase Project URL</label>
+              <input type="url" id="input-supabase-url" placeholder="https://seu-projeto.supabase.co">
+            </div>
+
+            <div class="form-field" id="field-supabase-key">
+              <label for="input-supabase-key">Supabase Anon Public Key</label>
+              <input type="text" id="input-supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+            </div>
+
+            <div class="form-field" id="field-firebase-project" hidden>
+              <label for="input-firebase-project">Firebase Project ID</label>
+              <input type="text" id="input-firebase-project" placeholder="meu-projeto-viagens">
+            </div>
+
+            <div class="form-field" id="field-firebase-key" hidden>
+              <label for="input-firebase-key">Firebase Web API Key</label>
+              <input type="text" id="input-firebase-key" placeholder="AIzaSy...">
+            </div>
+
+            <div class="form-field full-span">
+              <div class="planner-submit-row">
+                <button type="submit" class="btn-primary-blue">Salvar Chaves e Sincronizar Nuvem</button>
+                <span class="form-status-msg" id="cloud-config-status" role="status"></span>
+              </div>
+            </div>
+          </form>
+
+          <div class="sql-helper-box">
+            <h4>Script SQL para Supabase (cole no SQL Editor do Supabase se escolher Supabase):</h4>
+            <pre><code>create table if not exists public.posts (
+  id text primary key,
+  title text not null,
+  category text not null,
+  slug text not null,
+  excerpt text,
+  content text,
+  cover_key text,
+  cover_url text,
+  season text,
+  duration text,
+  style text,
+  reading_time text,
+  tip text,
+  author text,
+  created_at timestamptz default now()
+);
+alter table public.posts enable row level security;
+create policy "Leitura publica de posts" on public.posts for select using (true);
+create policy "Escrita de posts" on public.posts for all using (true) with check (true);</code></pre>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -366,17 +724,102 @@
     <div class="footer-inner">
       <div class="footer-brand">
         <strong>VÉRTICE AZUL</strong>
-        <p>Curadoria de viagens oceânicas, insulares e costeiras desenhadas sob medida. Roteiros demonstrativos para avaliação de planejamento.</p>
+        <p>Curadoria de viagens oceânicas, insulares e costeiras desenhadas sob medida. Portal de guias de viagem e roteiros demonstrativos.</p>
       </div>
       <nav class="footer-links" aria-label="Links do rodapé">
-        <a href="#destinos">Destinos</a>
+        <a href="#publicacoes">Guias &amp; Posts</a>
         <a href="#roteiros">Roteiros Sob Medida</a>
         <a href="#experiencias">Calendário Oceânico</a>
         <a href="#planejar">Planejar Viagem</a>
+        <a href="#conta" id="footer-account-link">Minha Conta / Admin</a>
       </nav>
     </div>
   </footer>
 
+  <!-- AUTHENTICATION MODAL (LOGIN & REGISTER WITH REMEMBER ME) -->
+  <div class="auth-modal-backdrop" id="auth-modal" hidden role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+    <div class="auth-modal-card">
+      <div class="auth-modal-top">
+        <div class="auth-tabs" role="tablist">
+          <button type="button" class="auth-tab-btn is-active" id="tab-btn-login" data-auth-tab="login">Entrar na Conta</button>
+          <button type="button" class="auth-tab-btn" id="tab-btn-register" data-auth-tab="register">Criar Nova Conta</button>
+        </div>
+        <button type="button" class="auth-close-btn" id="btn-close-auth-modal" aria-label="Fechar janela de acesso">✕</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form id="login-form" class="auth-form" novalidate>
+        <h3 id="auth-modal-title">Acesse sua Conta</h3>
+        <p class="auth-subtitle">Entre com seu e-mail e senha para gerenciar postagens ou acessar seus roteiros salvos.</p>
+
+        <div class="form-field">
+          <label for="login-email">E-mail</label>
+          <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email" required>
+        </div>
+
+        <div class="form-field">
+          <label for="login-password">Senha</label>
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+
+        <label class="remember-me-row" for="login-remember">
+          <input type="checkbox" id="login-remember" checked>
+          <span>Lembrar meu login neste dispositivo</span>
+        </label>
+
+        <div class="admin-credentials-hint">
+          <div>
+            <strong>Conta Administrador Padrão:</strong>
+            <span><code>admin@verticeazul.com</code> · Senha: <code>Admin@123</code></span>
+          </div>
+          <button type="button" class="btn-fill-admin" id="btn-fill-admin-creds">Preencher Admin</button>
+        </div>
+
+        <div class="auth-submit-stack">
+          <button type="submit" class="btn-primary-blue full-width-btn">Entrar</button>
+          <span class="form-status-msg" id="login-status-msg" role="status" aria-live="polite"></span>
+        </div>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form id="register-form" class="auth-form" hidden novalidate>
+        <h3>Criar Conta na VÉRTICE AZUL</h3>
+        <p class="auth-subtitle">Cadastre-se gratuitamente com seu e-mail e senha.</p>
+
+        <div class="form-field">
+          <label for="register-name">Seu Nome Completo</label>
+          <input type="text" id="register-name" placeholder="Ex.: Mariana Costa" autocomplete="name" required>
+        </div>
+
+        <div class="form-field">
+          <label for="register-email">E-mail</label>
+          <input type="email" id="register-email" placeholder="voce@exemplo.com" autocomplete="email" required>
+        </div>
+
+        <div class="form-field">
+          <label for="register-password">Crie uma Senha (mín. 6 caracteres)</label>
+          <input type="password" id="register-password" placeholder="••••••••" autocomplete="new-password" required>
+        </div>
+
+        <div class="form-field">
+          <label for="register-confirm">Confirme sua Senha</label>
+          <input type="password" id="register-confirm" placeholder="••••••••" autocomplete="new-password" required>
+        </div>
+
+        <label class="remember-me-row" for="register-remember">
+          <input type="checkbox" id="register-remember" checked>
+          <span>Manter meu login lembrado neste dispositivo</span>
+        </label>
+
+        <div class="auth-submit-stack">
+          <button type="submit" class="btn-primary-blue full-width-btn">Criar Minha Conta</button>
+          <span class="form-status-msg" id="register-status-msg" role="status" aria-live="polite"></span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="cloud-config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
