@@ -58,6 +58,15 @@
 
     <button type="button" class="r-search-submit-btn" id="hero-search-submit" data-region="search-submit-btn">Buscar Roteiros</button>
 
+    <!-- INLINE SEARCH RESULTS DROPDOWN (Appears directly below the search bar without scrolling the page) -->
+    <div class="hero-search-results-dropdown" id="hero-search-results-dropdown" hidden role="region" aria-label="Postagens encontradas na pesquisa">
+      <div class="hero-search-results-header">
+        <span id="hero-search-results-count">Postagens filtradas por relevância</span>
+        <button type="button" class="hero-search-results-close" id="btn-close-hero-search" aria-label="Fechar resultados da pesquisa">✕ Fechar</button>
+      </div>
+      <div class="hero-search-results-list" id="hero-search-results-list"></div>
+    </div>
+
     <div class="r-card-1-frame" data-region="card-1-frame"></div>
     <figure class="r-card-1-photo" data-region="card-1-photo" data-route-target="grecia">
       <img src="assets/plates/card-1-photo.png" data-plate-key="card-1-photo" onerror="window.__applyPlateFallback(this)" width="342" height="182" decoding="sync" loading="eager" alt="Ilhas Gregas vistas do alto sobre o Mar Egeu">
@@ -141,11 +150,15 @@
       </div>
     </section>
 
-    <!-- SUBPAGE VIEW (Rendered when visiting /<pais>/<slug-do-post>) -->
+    <!-- SUBPAGE VIEW (Rendered as a dedicated subpage when visiting /<pais>/<slug-do-post>) -->
     <section class="subpage-container" id="subpage-view" hidden aria-live="polite">
+      <div class="subpage-dedicated-masthead">
+        <a href="#top" class="subpage-brand-logo" id="subpage-brand-home">VÉRTICE AZUL</a>
+        <span class="subpage-masthead-tag">Subpágina Oficial de Destino</span>
+      </div>
       <div class="subpage-inner">
         <div class="subpage-topbar">
-          <button type="button" class="btn-back-home" id="btn-subpage-back">← Voltar para todos os guias</button>
+          <button type="button" class="btn-back-home" id="btn-subpage-back">← Voltar para a Página Inicial</button>
           <nav class="subpage-breadcrumb" aria-label=" Caminho da subpágina">
             <a href="#publicacoes" id="breadcrumb-home">Página Inicial</a>
             <span>/</span>
