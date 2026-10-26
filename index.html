@@ -226,6 +226,48 @@
           </div>
         </article>
 
+        <!-- PER-POST COMMENTS SECTION (ACCOUNT-GATED + SUPABASE SYNCED) -->
+        <section class="subpage-comments-section" id="subpage-comments-section" aria-labelledby="heading-subpage-comments">
+          <div class="comments-section-header">
+            <div>
+              <h3 id="heading-subpage-comments">Comentários da Postagem</h3>
+              <p class="comments-section-sub">Compartilhe sua experiência, tire dúvidas ou responda a outros viajantes neste guia.</p>
+            </div>
+            <span class="comments-count-pill" id="subpage-comments-count">0 comentários</span>
+          </div>
+
+          <!-- SHOWN WHEN VISITOR IS LOGGED OUT -->
+          <div class="comments-auth-gate" id="comments-auth-gate">
+            <div class="comments-auth-gate-text">
+              <strong>Apenas usuários com conta podem comentar</strong>
+              <p>Entre na sua conta ou crie uma gratuitamente para publicar comentários, marcar <em>Like (Legal)</em> ou <em>Dislike (Chato)</em> e responder a outros comentários.</p>
+            </div>
+            <div class="comments-auth-gate-actions">
+              <button type="button" class="btn-account-outline is-dark" id="btn-comment-gate-login">Entrar na Conta</button>
+              <button type="button" class="btn-primary-blue" id="btn-comment-gate-register">Criar Conta</button>
+            </div>
+          </div>
+
+          <!-- SHOWN WHEN USER IS LOGGED IN -->
+          <form class="comment-compose-form" id="comment-compose-form" hidden novalidate>
+            <div class="comment-compose-top">
+              <span class="comment-user-avatar" id="comment-compose-avatar">VA</span>
+              <div class="comment-compose-meta">
+                <span>Comentando como</span>
+                <strong id="comment-author-display">Viajante</strong>
+              </div>
+            </div>
+            <textarea id="comment-input-text" rows="3" placeholder="Escreva seu comentário sobre esta postagem..." required></textarea>
+            <div class="comment-compose-footer">
+              <span class="form-status-msg" id="comment-status-msg" role="status" aria-live="polite"></span>
+              <button type="submit" class="btn-primary-blue" id="btn-submit-comment">Publicar Comentário</button>
+            </div>
+          </form>
+
+          <!-- THREADED COMMENTS LIST FOR THIS SPECIFIC POST -->
+          <div class="comments-thread-list" id="comments-thread-list" aria-live="polite"></div>
+        </section>
+
         <div class="subpage-related-section">
           <h3>Outras Subpáginas e Guias de Viagem</h3>
           <div class="posts-grid" id="subpage-related-grid"></div>
@@ -494,7 +536,24 @@ create table if not exists public.accounts (
 );
 alter table public.accounts enable row level security;
 drop policy if exists "Acesso contas" on public.accounts;
-create policy "Acesso contas" on public.accounts for all using (true) with check (true);</code></pre>
+create policy "Acesso contas" on public.accounts for all using (true) with check (true);
+
+create table if not exists public.comments (
+  id text primary key,
+  post_id text not null,
+  parent_id text,
+  author_id text,
+  author_name text not null,
+  author_email text not null,
+  author_role text default 'user',
+  content text not null,
+  liked_by jsonb default '[]'::jsonb,
+  disliked_by jsonb default '[]'::jsonb,
+  created_at timestamptz default now()
+);
+alter table public.comments enable row level security;
+drop policy if exists "Acesso comentarios" on public.comments;
+create policy "Acesso comentarios" on public.comments for all using (true) with check (true);</code></pre>
           </div>
         </div>
       </div>
