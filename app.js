@@ -1300,14 +1300,18 @@
     }
 
     if (subpageView) {
+      var heroDrop = document.getElementById('hero-search-results-dropdown');
+      if (heroDrop) heroDrop.hidden = true;
+      document.body.classList.add('is-subpage-active');
       subpageView.hidden = false;
-      subpageView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo(0, 0);
     }
     return true;
   }
 
   function closeSubpageView(pushHistory) {
     currentOpenPost = null;
+    document.body.classList.remove('is-subpage-active');
     var subpageView = document.getElementById('subpage-view');
     if (subpageView) subpageView.hidden = true;
     document.title = 'VÉRTICE AZUL — Viagens Oceânicas Desenhadas Sob Medida';
@@ -1320,6 +1324,7 @@
           window.location.hash = '';
         }
       } catch (e) {}
+      window.scrollTo(0, 0);
     }
   }
 
@@ -2012,8 +2017,14 @@
   if (btnSubpageBack) {
     btnSubpageBack.addEventListener('click', function () {
       closeSubpageView(true);
-      var pubSec = document.getElementById('publicacoes');
-      if (pubSec) pubSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  var subpageBrandHome = document.getElementById('subpage-brand-home');
+  if (subpageBrandHome) {
+    subpageBrandHome.addEventListener('click', function (e) {
+      e.preventDefault();
+      closeSubpageView(true);
     });
   }
 
@@ -2072,10 +2083,130 @@
 
   var postsSearchInput = document.getElementById('posts-search-input');
   var heroSearchInput = document.getElementById('hero-search-input');
+  var heroResultsDropdown = document.getElementById('hero-search-results-dropdown');
+  var heroResultsList = document.getElementById('hero-search-results-list');
+  var heroResultsCount = document.getElementById('hero-search-results-count');
+  var btnCloseHeroSearch = document.getElementById('btn-close-hero-search');
   var btnClearSearch = document.getElementById('btn-clear-search');
   var btnResetRelevance = document.getElementById('btn-reset-relevance');
 
-  function applyFreeSearchQuery(queryValue, shouldScrollToResults) {
+  function renderHeroSearchDropdown(queryValue, forceShowAllIfEmpty) {
+    if (!heroResultsDropdown || !heroResultsList) return;
+    var rawQ = String(queryValue || '').trim();
+    if (!rawQ && !forceShowAllIfEmpty) {
+      heroResultsDropdown.hidden = true;
+      return;
+    }
+
+    var posts = loadLocalPosts();
+    var scored = [];
+
+    if (rawQ) {
+      posts.forEach(function (p) {
+        var sc = computePostRelevance(p, rawQ);
+        if (sc > 0) {
+          scored.push({ post: p, score: sc });
+        }
+      });
+      scored.sort(function (a, b) {
+        return b.score - a.score;
+      });
+    } else {
+      posts.forEach(function (p) {
+        scored.push({ post: p, score: 100 });
+      });
+    }
+
+    if (heroResultsCount) {
+      if (rawQ) {
+        heroResultsCount.textContent = 'Resultados por relevância para «' + rawQ + '» (' + scored.length + ')';
+      } else {
+        heroResultsCount.textContent = 'Todas as postagens publicadas (' + scored.length + ')';
+      }
+    }
+
+    heroResultsList.innerHTML = '';
+
+    if (scored.length === 0) {
+      var emptyMsg = document.createElement('p');
+      emptyMsg.className = 'hero-search-empty';
+      emptyMsg.textContent = 'Nenhuma postagem encontrada para «' + rawQ + '». Tente outra palavra-chave.';
+      heroResultsList.appendChild(emptyMsg);
+      heroResultsDropdown.hidden = false;
+      return;
+    }
+
+    var topScore = scored[0].score || 1;
+    scored.forEach(function (item, idx) {
+      var post = item.post;
+      var subpagePath = buildSubpageRelativePath(post.category, post.slug);
+      var pct = rawQ ? Math.max(65, Math.min(99, Math.round((item.score / Math.max(topScore, 1)) * 98))) : 100;
+
+      var cardLink = document.createElement('a');
+      cardLink.href = subpagePath.slice(1);
+      cardLink.className = 'hero-search-result-card';
+      cardLink.addEventListener('click', function (e) {
+        e.preventDefault();
+        heroResultsDropdown.hidden = true;
+        openSubpage(post.category, post.slug, true);
+      });
+
+      var thumb = document.createElement('img');
+      thumb.className = 'hero-search-result-thumb';
+      thumb.src = resolvePostCoverSrc(post);
+      thumb.alt = post.title;
+
+      var body = document.createElement('div');
+      body.className = 'hero-search-result-body';
+
+      var meta = document.createElement('div');
+      meta.className = 'hero-search-result-meta';
+
+      var catBadge = document.createElement('span');
+      catBadge.className = 'post-category-pill';
+      catBadge.textContent = formatCategoryDisplay(post.category);
+      meta.appendChild(catBadge);
+
+      if (rawQ) {
+        var relBadge = document.createElement('span');
+        relBadge.className = 'post-relevance-badge';
+        relBadge.textContent = (idx === 0 && scored.length > 1)
+          ? 'Mais Relevante (' + pct + '%)'
+          : 'Relevância: ' + pct + '%';
+        meta.appendChild(relBadge);
+      }
+
+      var urlCode = document.createElement('span');
+      urlCode.className = 'post-url-chip';
+      urlCode.textContent = subpagePath;
+      meta.appendChild(urlCode);
+
+      var titleH4 = document.createElement('h4');
+      titleH4.className = 'hero-search-result-title';
+      titleH4.textContent = post.title;
+
+      var excP = document.createElement('p');
+      excP.className = 'hero-search-result-excerpt';
+      excP.textContent = post.excerpt;
+
+      body.appendChild(meta);
+      body.appendChild(titleH4);
+      body.appendChild(excP);
+
+      var ctaSpan = document.createElement('span');
+      ctaSpan.className = 'hero-search-result-cta';
+      ctaSpan.textContent = 'Abrir Subpágina →';
+
+      cardLink.appendChild(thumb);
+      cardLink.appendChild(body);
+      cardLink.appendChild(ctaSpan);
+      heroResultsList.appendChild(cardLink);
+    });
+
+    heroResultsDropdown.hidden = false;
+  }
+
+  function applyFreeSearchQuery(queryValue, showHeroDropdown, forceDropdownIfEmpty) {
     activeSearchQuery = String(queryValue || '');
     if (postsSearchInput && postsSearchInput.value !== activeSearchQuery) {
       postsSearchInput.value = activeSearchQuery;
@@ -2088,40 +2219,46 @@
       syncCategoryFilterPills(loadLocalPosts());
     }
     renderPostsGrid();
-    if (shouldScrollToResults) {
-      closeSubpageView(true);
-      var pubSec = document.getElementById('publicacoes');
-      if (pubSec) pubSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (showHeroDropdown) {
+      renderHeroSearchDropdown(activeSearchQuery, !!forceDropdownIfEmpty);
+    } else if (!activeSearchQuery.trim() && heroResultsDropdown) {
+      heroResultsDropdown.hidden = true;
     }
   }
 
   if (postsSearchInput) {
     postsSearchInput.addEventListener('input', function () {
-      applyFreeSearchQuery(postsSearchInput.value || '', false);
+      applyFreeSearchQuery(postsSearchInput.value || '', false, false);
     });
   }
 
   if (heroSearchInput) {
     heroSearchInput.addEventListener('input', function () {
-      applyFreeSearchQuery(heroSearchInput.value || '', false);
+      applyFreeSearchQuery(heroSearchInput.value || '', true, false);
     });
     heroSearchInput.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') {
         e.preventDefault();
-        applyFreeSearchQuery(heroSearchInput.value || '', true);
+        applyFreeSearchQuery(heroSearchInput.value || '', true, true);
       }
+    });
+  }
+
+  if (btnCloseHeroSearch && heroResultsDropdown) {
+    btnCloseHeroSearch.addEventListener('click', function () {
+      heroResultsDropdown.hidden = true;
     });
   }
 
   if (btnClearSearch) {
     btnClearSearch.addEventListener('click', function () {
-      applyFreeSearchQuery('', false);
+      applyFreeSearchQuery('', false, false);
     });
   }
 
   if (btnResetRelevance) {
     btnResetRelevance.addEventListener('click', function () {
-      applyFreeSearchQuery('', false);
+      applyFreeSearchQuery('', false, false);
     });
   }
 
@@ -2230,7 +2367,7 @@
   if (heroSubmit) {
     heroSubmit.addEventListener('click', function () {
       var qVal = heroSearchInput ? heroSearchInput.value : '';
-      applyFreeSearchQuery(qVal, true);
+      applyFreeSearchQuery(qVal, true, true);
     });
   }
 
