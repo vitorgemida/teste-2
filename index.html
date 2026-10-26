@@ -45,29 +45,16 @@
 
     <p class="r-hero-subtitle" data-region="hero-subtitle">Curadoria autoral de roteiros oceânicos e costeiros</p>
 
-    <div class="r-search-bar-shell" data-region="search-bar-shell" role="search" aria-label="Configurador rápido de travessia"></div>
+    <div class="r-search-bar-shell" data-region="search-bar-shell" role="search" aria-label="Pesquisa livre de roteiros e postagens"></div>
 
-    <button type="button" class="r-search-field-destino" id="hero-btn-destino" data-region="search-field-destino" aria-label="Selecionar destino costeiro">
+    <div class="r-search-field-destino r-search-free-wrap" data-region="search-field-destino">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7a7e87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="11" cy="11" r="7"></circle>
         <line x1="20" y1="20" x2="16.2" y2="16.2"></line>
       </svg>
-      <span id="hero-label-destino">Destino Costeiro</span>
-    </button>
-
-    <button type="button" class="r-search-field-epoca" id="hero-btn-epoca" data-region="search-field-epoca" aria-label="Selecionar época do ano">
-      <span id="hero-label-epoca">Época do Ano</span>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#12141f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <polyline points="6 9 12 15 18 9"></polyline>
-      </svg>
-    </button>
-
-    <button type="button" class="r-search-field-estilo" id="hero-btn-estilo" data-region="search-field-estilo" aria-label="Selecionar estilo de travessia">
-      <span id="hero-label-estilo">Estilo de Travessia</span>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#12141f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <polyline points="6 9 12 15 18 9"></polyline>
-      </svg>
-    </button>
+      <input type="search" class="hero-free-search-input" id="hero-search-input" placeholder="Pesquise qualquer destino, roteiro, época ou palavra-chave..." aria-label="Digite o que quiser pesquisar no site" autocomplete="off">
+      <span class="hero-search-hint-tag" data-region="search-field-estilo">Filtrar por Relevância</span>
+    </div>
 
     <button type="button" class="r-search-submit-btn" id="hero-search-submit" data-region="search-submit-btn">Buscar Roteiros</button>
 
@@ -254,8 +241,14 @@
         </div>
 
         <div class="posts-search-box">
-          <input type="search" id="posts-search-input" placeholder="Buscar guia (ex.: Caruaru, Cíclades, Lofoten, Amalfi)..." aria-label="Buscar postagens por palavra-chave">
+          <input type="search" id="posts-search-input" placeholder="Pesquisa livre: digite qualquer destino, tema ou palavra-chave..." aria-label="Pesquisar postagens livremente por relevância" autocomplete="off">
+          <button type="button" class="btn-posts-search-clear" id="btn-clear-search" hidden aria-label="Limpar pesquisa">Limpar</button>
         </div>
+      </div>
+
+      <div class="search-relevance-bar" id="search-relevance-bar" hidden aria-live="polite">
+        <span id="search-relevance-text">Postagens filtradas e ordenadas por relevância</span>
+        <button type="button" class="btn-reset-relevance" id="btn-reset-relevance">Mostrar todas as postagens</button>
       </div>
 
       <div class="posts-grid" id="main-posts-grid" aria-live="polite"></div>
@@ -646,42 +639,48 @@ create policy "Acesso contas" on public.accounts for all using (true) with check
           <form id="bespoke-planner-form" novalidate>
             <div class="planner-grid">
               <div class="form-field">
-                <label for="input-destino">Destino Costeiro</label>
-                <select id="input-destino" name="destino">
-                  <option value="Ilhas Gregas">Ilhas Gregas (Cíclades &amp; Egeu)</option>
-                  <option value="Fiordes da Noruega">Fiordes da Noruega &amp; Lofoten</option>
-                  <option value="Costa Amalfitana">Costa Amalfitana &amp; Ilhas Pontinas</option>
-                  <option value="Arquipélago dos Açores">Arquipélago dos Açores</option>
-                </select>
+                <label for="input-destino">Destino Desejado</label>
+                <input type="text" id="input-destino" name="destino" list="datalist-destinos" value="Ilhas Gregas" placeholder="Digite qualquer destino...">
+                <datalist id="datalist-destinos">
+                  <option value="Ilhas Gregas"></option>
+                  <option value="Fiordes da Noruega"></option>
+                  <option value="Costa Amalfitana"></option>
+                  <option value="São João de Caruaru (Brasil)"></option>
+                  <option value="Arquipélago dos Açores"></option>
+                </datalist>
               </div>
 
               <div class="form-field">
                 <label for="input-epoca">Época do Ano</label>
-                <select id="input-epoca" name="epoca">
-                  <option value="Maio a Junho">Maio a Junho (Primavera Boreal)</option>
-                  <option value="Junho a Agosto">Junho a Agosto (Alto Verão &amp; Sol da Meia-Noite)</option>
-                  <option value="Setembro a Outubro">Setembro a Outubro (Mar Quente &amp; Calmo)</option>
-                  <option value="Maio a Setembro">Maio a Setembro (Janela Estendida)</option>
-                </select>
+                <input type="text" id="input-epoca" name="epoca" list="datalist-epocas" value="Maio a Junho" placeholder="Digite a época ou mês...">
+                <datalist id="datalist-epocas">
+                  <option value="Maio a Junho"></option>
+                  <option value="Junho a Agosto"></option>
+                  <option value="Setembro a Outubro"></option>
+                  <option value="Maio a Setembro"></option>
+                </datalist>
               </div>
 
               <div class="form-field">
-                <label for="input-estilo">Estilo de Travessia</label>
-                <select id="input-estilo" name="estilo">
-                  <option value="Veleiro & Vilas Costeiras">Veleiro &amp; Vilas Costeiras</option>
-                  <option value="Iate Clássico & Palazzos">Iate Clássico &amp; Palazzos</option>
-                  <option value="Expedição Ártica & Cabanas">Expedição Ártica &amp; Cabanas</option>
-                  <option value="Travessia Naturalista & Vulcões">Travessia Naturalista &amp; Vulcões</option>
-                </select>
+                <label for="input-estilo">Estilo de Viagem</label>
+                <input type="text" id="input-estilo" name="estilo" list="datalist-estilos" value="Veleiro &amp; Vilas Costeiras" placeholder="Digite o estilo de viagem...">
+                <datalist id="datalist-estilos">
+                  <option value="Veleiro &amp; Vilas Costeiras"></option>
+                  <option value="Iate Clássico &amp; Palazzos"></option>
+                  <option value="Expedição Ártica &amp; Cabanas"></option>
+                  <option value="Cultura, Gastronomia &amp; Tradição"></option>
+                </datalist>
               </div>
 
               <div class="form-field">
                 <label for="input-duracao">Duração Desejada</label>
-                <select id="input-duracao" name="duracao">
-                  <option value="8 a 9 dias">8 a 9 dias</option>
-                  <option value="10 a 12 dias">10 a 12 dias</option>
-                  <option value="14+ dias (Travessia Completa)">14+ dias (Travessia Completa)</option>
-                </select>
+                <input type="text" id="input-duracao" name="duracao" list="datalist-duracoes" value="8 a 9 dias" placeholder="Ex.: 5 dias, 10 dias...">
+                <datalist id="datalist-duracoes">
+                  <option value="4 a 5 dias"></option>
+                  <option value="8 a 9 dias"></option>
+                  <option value="10 a 12 dias"></option>
+                  <option value="14+ dias (Travessia Completa)"></option>
+                </datalist>
               </div>
 
               <div class="form-field">
@@ -745,9 +744,72 @@ create policy "Acesso contas" on public.accounts for all using (true) with check
         <a href="#experiencias">Calendário Oceânico</a>
         <a href="#planejar">Planejar Viagem</a>
         <a href="#conta" id="footer-account-link">Minha Conta</a>
+        <a href="#sobre-nos" data-open-institutional="sobre" id="footer-link-sobre">Sobre Nós</a>
+        <a href="#politica-de-privacidade" data-open-institutional="privacidade" id="footer-link-privacidade">Política de Privacidade</a>
+        <a href="#termos-de-uso" data-open-institutional="termos" id="footer-link-termos">Termos de Uso</a>
+        <button type="button" class="footer-cookie-trigger" id="btn-open-cookie-popup">Preferências de Cookies</button>
       </nav>
     </div>
   </footer>
+
+  <!-- INSTITUTIONAL & LEGAL MODAL (SOBRE NÓS, POLÍTICA DE PRIVACIDADE, TERMOS DE USO) -->
+  <div class="auth-modal-backdrop" id="institutional-modal" hidden role="dialog" aria-modal="true" aria-labelledby="institutional-modal-title">
+    <div class="auth-modal-card institutional-modal-card">
+      <div class="auth-modal-top">
+        <div class="auth-tabs" role="tablist" aria-label="Seções institucionais e legais">
+          <button type="button" class="auth-tab-btn is-active" data-institutional-tab="sobre">Sobre Nós</button>
+          <button type="button" class="auth-tab-btn" data-institutional-tab="privacidade">Política de Privacidade</button>
+          <button type="button" class="auth-tab-btn" data-institutional-tab="termos">Termos de Uso</button>
+        </div>
+        <button type="button" class="auth-close-btn" id="btn-close-institutional-modal" aria-label="Fechar janela institucional">✕</button>
+      </div>
+
+      <!-- TAB: SOBRE NÓS -->
+      <div class="institutional-pane" id="institutional-pane-sobre">
+        <h3 id="institutional-modal-title">Sobre a VÉRTICE AZUL</h3>
+        <p class="institutional-lead">Curadoria autoral de roteiros oceânicos, insulares e culturais desenhados sob medida.</p>
+        <div class="institutional-prose">
+          <p>A <strong>VÉRTICE AZUL</strong> nasceu com o propósito de transformar a forma como viajantes independentes e apaixonados pelo mar planejam suas jornadas. Combinamos o rigor técnico da navegação costeira com uma curadoria editorial profunda sobre destinos brasileiros e internacionais.</p>
+          <h4>Nossa Metodologia Editorial</h4>
+          <p>Cada guia e subpágina publicada em nosso portal é estruturada com dados reais de sazonalidade, janelas ideais de clima e vento, logística de acesso, gastronomia regional e roteiros dia a dia. Seja navegando pelas Cíclades Ocidentais na Grécia, explorando os fiordes árticos da Noruega, contornando a Costa Amalfitana ou vivenciando a riqueza cultural do São João de Caruaru no Brasil, priorizamos experiências autênticas longe do turismo massificado.</p>
+          <h4>Compromisso com o Viajante</h4>
+          <p>Oferecemos ferramentas abertas de pesquisa por relevância, criação de conta gratuita para salvar seus guias favoritos e planejamento personalizado de travessias, mantendo transparência editorial em todas as nossas recomendações.</p>
+        </div>
+      </div>
+
+      <!-- TAB: POLÍTICA DE PRIVACIDADE -->
+      <div class="institutional-pane" id="institutional-pane-privacidade" hidden>
+        <h3>Política de Privacidade</h3>
+        <p class="institutional-lead">Em conformidade com a Lei Geral de Proteção de Dados Pessoais (LGPD — Lei nº 13.709/2018).</p>
+        <div class="institutional-prose">
+          <h4>1. Coleta e Uso de Informações</h4>
+          <p>Coletamos apenas os dados fornecidos voluntariamente por você ao criar uma conta de viajante ou solicitar um briefing de roteiro: nome completo, endereço de e-mail e preferências de viagem. Esses dados são utilizados exclusivamente para identificar sua sessão, permitir o salvamento de guias favoritos e enviar propostas de roteiro solicitadas.</p>
+          <h4>2. Armazenamento Local e Sincronização em Nuvem</h4>
+          <p>Para proporcionar rapidez e disponibilidade, o portal utiliza armazenamento do navegador (<code>localStorage</code> e <code>sessionStorage</code>) aliado à sincronização segura com banco de dados em nuvem (Supabase). Caso você ative a opção <em>"Lembrar meu login"</em> e aceite nossa Cláusula de Cookies, sua sessão permanecerá ativa neste dispositivo; caso recuse, os dados de sessão serão encerrados ao fechar o navegador.</p>
+          <h4>3. Compartilhamento e Segurança</h4>
+          <p>A <strong>VÉRTICE AZUL</strong> não vende, aluga ou compartilha seus dados pessoais com terceiros para fins publicitários. Adotamos práticas modernas de segurança e controle de acesso restrito.</p>
+          <h4>4. Direitos do Titular</h4>
+          <p>Você pode, a qualquer momento, revisar suas preferências de cookies pelo botão <em>"Preferências de Cookies"</em> no rodapé, desconectar sua conta ou solicitar a exclusão definitiva de seus dados registrados.</p>
+        </div>
+      </div>
+
+      <!-- TAB: TERMOS DE USO -->
+      <div class="institutional-pane" id="institutional-pane-termos" hidden>
+        <h3>Termos de Uso</h3>
+        <p class="institutional-lead">Regras de utilização, direitos autorais e responsabilidades ao acessar o portal VÉRTICE AZUL.</p>
+        <div class="institutional-prose">
+          <h4>1. Aceitação dos Termos</h4>
+          <p>Ao acessar e utilizar o site <strong>VÉRTICE AZUL</strong>, suas subpáginas de destinos e o sistema de contas, você concorda integralmente com estes Termos de Uso e com nossa Política de Privacidade.</p>
+          <h4>2. Uso do Conteúdo e Propriedade Intelectual</h4>
+          <p>Todos os textos editoriais, roteiros, fotografias, logotipos, códigos e elementos visuais presentes no portal são de propriedade exclusiva da <strong>VÉRTICE AZUL</strong>. É permitido consultar, compartilhar links diretos das subpáginas e salvar guias em sua conta para uso pessoal e não comercial, sendo vedada a reprodução total ou parcial sem autorização prévia.</p>
+          <h4>3. Contas de Usuário</h4>
+          <p>O usuário é responsável por manter a confidencialidade de seu e-mail e senha cadastrados, bem como pela veracidade das informações prestadas. O acesso às ferramentas de publicação e administração do portal é estritamente reservado aos administradores autorizados.</p>
+          <h4>4. Caráter Informativo dos Guias</h4>
+          <p>As informações sobre condições marítimas, melhores épocas, temperaturas e programações culturais possuem caráter informativo e orientativo, podendo sofrer variações meteorológicas ou alterações por parte de órgãos locais nos destinos.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- AUTHENTICATION MODAL (LOGIN & REGISTER WITH REMEMBER ME) -->
   <div class="auth-modal-backdrop" id="auth-modal" hidden role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
@@ -823,6 +885,32 @@ create policy "Acesso contas" on public.accounts for all using (true) with check
       </form>
     </div>
   </div>
+
+  <!-- COOKIE CONSENT POPUP (LGPD CLAUSE WITH ACCEPT OR DECLINE) -->
+  <aside class="cookie-popup-container" id="cookie-consent-popup" hidden role="dialog" aria-modal="false" aria-labelledby="cookie-popup-title">
+    <div class="cookie-popup-card">
+      <div class="cookie-popup-content">
+        <div class="cookie-popup-header">
+          <strong id="cookie-popup-title">Cláusula de Cookies e Privacidade</strong>
+          <button type="button" class="cookie-details-toggle" id="btn-toggle-cookie-clause" aria-expanded="false">Ler cláusula completa</button>
+        </div>
+        <p class="cookie-popup-text">
+          Utilizamos cookies e armazenamento local para manter sua sessão conectada (opção <em>Lembrar meu login</em>), guardar seus guias de viagem favoritos e aprimorar o desempenho de navegação na <strong>VÉRTICE AZUL</strong>. Você pode aceitar o uso completo ou recusar os cookies de persistência não essenciais.
+        </p>
+        <div class="cookie-clause-details" id="cookie-clause-details" hidden>
+          <p>
+            <strong>1. Cookies Estritamente Necessários:</strong> Garantem o funcionamento básico de navegação entre a página inicial e as subpáginas de destinos durante a sessão atual.<br>
+            <strong>2. Cookies de Preferência e Autenticação Persistente:</strong> Permitem lembrar seu login entre visitas, manter roteiros salvos na conta e registrar suas preferências de busca costeira em conformidade com a LGPD (Lei nº 13.709/2018). Ao recusar, sua navegação permanece ativa apenas em modo temporário de sessão.
+          </p>
+        </div>
+      </div>
+
+      <div class="cookie-popup-actions">
+        <button type="button" class="btn-cookie-decline" id="btn-cookie-decline">Recusar Cookies</button>
+        <button type="button" class="btn-cookie-accept" id="btn-cookie-accept">Aceitar Cookies</button>
+      </div>
+    </div>
+  </aside>
 
   <script src="cloud-config.js"></script>
   <script src="app.js"></script>
