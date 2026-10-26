@@ -227,6 +227,89 @@
   var STORAGE_CLOUD_KEY = 'vertice_azul_cloud_cfg_v1';
   var STORAGE_BOOKMARKS_KEY = 'vertice_azul_bookmarks_v1';
   var STORAGE_COOKIE_CONSENT_KEY = 'vertice_azul_cookies_consent_v1';
+  var STORAGE_COMMENTS_KEY = 'vertice_azul_comments_v1';
+  var INTERNAL_COMMENTS_STORE_EMAIL = '__comments_store__@verticeazul.internal';
+
+  var INITIAL_COMMENTS = [
+    {
+      id: 'cmt-caruaru-1',
+      postId: 'post-caruaru',
+      parentId: null,
+      authorId: 'user-seed-1',
+      authorName: 'Lucas Mendonça',
+      authorEmail: 'lucas@exemplo.com',
+      authorRole: 'user',
+      content: 'Fui no São João de Caruaru seguindo a dica de passar a tarde no Alto do Moura e foi a melhor parte da viagem! Os ateliês de cerâmica e o forró pé-de-serra durante o dia são imperdíveis.',
+      likedBy: ['helena@exemplo.com', 'marina@exemplo.com'],
+      dislikedBy: [],
+      createdAt: '2026-10-24T16:20:00Z'
+    },
+    {
+      id: 'cmt-caruaru-2',
+      postId: 'post-caruaru',
+      parentId: 'cmt-caruaru-1',
+      authorId: 'admin-default',
+      authorName: 'Administrador VÉRTICE AZUL',
+      authorEmail: 'admin@verticeazul.com',
+      authorRole: 'admin',
+      content: 'Que ótimo relato, Lucas! Chegar cedo ao Alto do Moura faz toda a diferença para conversar com os artesãos com calma antes do movimento do fim da tarde.',
+      likedBy: ['lucas@exemplo.com'],
+      dislikedBy: [],
+      createdAt: '2026-10-24T17:05:00Z'
+    },
+    {
+      id: 'cmt-ciclades-1',
+      postId: 'post-ciclades',
+      parentId: null,
+      authorId: 'user-seed-2',
+      authorName: 'Helena Vasconcelos',
+      authorEmail: 'helena@exemplo.com',
+      authorRole: 'user',
+      content: 'Embarcar em Paros em vez de Atenas realmente economiza muito tempo de navegação. As falésias de Kleftiko em Milos têm a água mais transparente que já vi!',
+      likedBy: ['lucas@exemplo.com'],
+      dislikedBy: [],
+      createdAt: '2026-10-23T19:10:00Z'
+    },
+    {
+      id: 'cmt-fiordes-1',
+      postId: 'post-fiordes',
+      parentId: null,
+      authorId: 'user-seed-3',
+      authorName: 'Rafael Nogueira',
+      authorEmail: 'rafael@exemplo.com',
+      authorRole: 'user',
+      content: 'Alguém que já fez a rota de Lofoten em julho sabe dizer se precisa reservar as cabanas Rorbuer com muita antecedência?',
+      likedBy: [],
+      dislikedBy: [],
+      createdAt: '2026-10-22T14:40:00Z'
+    },
+    {
+      id: 'cmt-fiordes-2',
+      postId: 'post-fiordes',
+      parentId: 'cmt-fiordes-1',
+      authorId: 'admin-default',
+      authorName: 'Administrador VÉRTICE AZUL',
+      authorEmail: 'admin@verticeazul.com',
+      authorRole: 'admin',
+      content: 'Olá, Rafael! Sim, para julho em Reine e Henningsvær recomendamos reservar com pelo menos 3 a 4 meses de antecedência, pois as cabanas históricas à beira d\'água são poucas e muito disputadas.',
+      likedBy: ['rafael@exemplo.com'],
+      dislikedBy: [],
+      createdAt: '2026-10-22T15:15:00Z'
+    },
+    {
+      id: 'cmt-amalfi-1',
+      postId: 'post-amalfi',
+      parentId: null,
+      authorId: 'user-seed-4',
+      authorName: 'Carolina Tavares',
+      authorEmail: 'carolina@exemplo.com',
+      authorRole: 'user',
+      content: 'Conhecer a Costa Amalfitana pelo mar muda tudo. Evitamos todo o trânsito da estrada costeira e ainda estendemos até a Ilha de Ponza.',
+      likedBy: ['helena@exemplo.com'],
+      dislikedBy: [],
+      createdAt: '2026-10-21T18:00:00Z'
+    }
+  ];
 
   var DEFAULT_ADMIN_USER = {
     id: 'admin-default',
@@ -316,6 +399,9 @@
         }
       }
     } catch (e) {}
+    users = users.filter(function (u) {
+      return u && u.email && u.email.toLowerCase() !== INTERNAL_COMMENTS_STORE_EMAIL;
+    });
     var hasAdmin = users.some(function (u) {
       return u.email.toLowerCase() === DEFAULT_ADMIN_USER.email.toLowerCase();
     });
@@ -329,9 +415,173 @@
   }
 
   function saveLocalUsers(usersList) {
+    var clean = (usersList || []).filter(function (u) {
+      return u && u.email && u.email.toLowerCase() !== INTERNAL_COMMENTS_STORE_EMAIL;
+    });
     try {
-      localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(usersList));
+      localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(clean));
     } catch (e) {}
+  }
+
+  function loadLocalComments() {
+    try {
+      var raw = localStorage.getItem(STORAGE_COMMENTS_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {}
+    try {
+      localStorage.setItem(STORAGE_COMMENTS_KEY, JSON.stringify(INITIAL_COMMENTS));
+    } catch (e) {}
+    return INITIAL_COMMENTS.slice();
+  }
+
+  function saveLocalComments(commentsList) {
+    try {
+      localStorage.setItem(STORAGE_COMMENTS_KEY, JSON.stringify(commentsList));
+    } catch (e) {}
+  }
+
+  function syncCommentsBundleFallbackToSupabase(allComments) {
+    var mode = getActiveCloudMode();
+    var cfg = getCloudSettings();
+    if (mode !== 'supabase') return Promise.resolve();
+    var url = cfg.supabase.url.replace(/\/$/, '') + '/rest/v1/accounts';
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': cfg.supabase.anonKey,
+        'Authorization': 'Bearer ' + cfg.supabase.anonKey,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({
+        id: 'sys-comments-store-v1',
+        name: 'COMMENTS_STORAGE',
+        email: INTERNAL_COMMENTS_STORE_EMAIL,
+        password_hash: JSON.stringify(allComments || []),
+        role: 'system',
+        created_at: new Date().toISOString()
+      })
+    }).catch(function () {});
+  }
+
+  function syncCommentToCloud(commentObj, allComments) {
+    var mode = getActiveCloudMode();
+    var cfg = getCloudSettings();
+    if (mode === 'supabase') {
+      syncCommentsBundleFallbackToSupabase(allComments || loadLocalComments());
+      var url = cfg.supabase.url.replace(/\/$/, '') + '/rest/v1/comments';
+      return fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': cfg.supabase.anonKey,
+          'Authorization': 'Bearer ' + cfg.supabase.anonKey,
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({
+          id: commentObj.id,
+          post_id: commentObj.postId,
+          parent_id: commentObj.parentId || null,
+          author_id: commentObj.authorId || '',
+          author_name: commentObj.authorName,
+          author_email: commentObj.authorEmail,
+          author_role: commentObj.authorRole || 'user',
+          content: commentObj.content,
+          liked_by: Array.isArray(commentObj.likedBy) ? commentObj.likedBy : [],
+          disliked_by: Array.isArray(commentObj.dislikedBy) ? commentObj.dislikedBy : [],
+          created_at: commentObj.createdAt || new Date().toISOString()
+        })
+      }).catch(function () {});
+    }
+    return Promise.resolve();
+  }
+
+  function deleteCommentFromCloud(commentId, allComments) {
+    var mode = getActiveCloudMode();
+    var cfg = getCloudSettings();
+    if (mode === 'supabase') {
+      syncCommentsBundleFallbackToSupabase(allComments || loadLocalComments());
+      var url = cfg.supabase.url.replace(/\/$/, '') + '/rest/v1/comments?id=eq.' + encodeURIComponent(commentId);
+      return fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'apikey': cfg.supabase.anonKey,
+          'Authorization': 'Bearer ' + cfg.supabase.anonKey
+        }
+      }).catch(function () {});
+    }
+    return Promise.resolve();
+  }
+
+  function fetchCommentsFromCloud(callback) {
+    var mode = getActiveCloudMode();
+    var cfg = getCloudSettings();
+    if (mode !== 'supabase') return;
+
+    var url = cfg.supabase.url.replace(/\/$/, '') + '/rest/v1/comments?select=*&order=created_at.asc';
+    fetch(url, {
+      headers: {
+        'apikey': cfg.supabase.anonKey,
+        'Authorization': 'Bearer ' + cfg.supabase.anonKey
+      }
+    })
+      .then(function (r) {
+        if (r.ok) return r.json();
+        throw new Error('comments_table_unavailable');
+      })
+      .then(function (rows) {
+        if (!Array.isArray(rows)) return;
+        if (rows.length === 0) {
+          var seed = loadLocalComments();
+          seed.forEach(function (c) { syncCommentToCloud(c, seed); });
+          return;
+        }
+        var mapped = rows.map(function (r) {
+          return {
+            id: r.id,
+            postId: r.post_id,
+            parentId: r.parent_id || null,
+            authorId: r.author_id || '',
+            authorName: r.author_name || 'Viajante',
+            authorEmail: r.author_email || '',
+            authorRole: r.author_role || 'user',
+            content: r.content || '',
+            likedBy: Array.isArray(r.liked_by) ? r.liked_by : [],
+            dislikedBy: Array.isArray(r.disliked_by) ? r.disliked_by : [],
+            createdAt: r.created_at || new Date().toISOString()
+          };
+        });
+        saveLocalComments(mapped);
+        if (callback) callback(mapped);
+      })
+      .catch(function () {
+        var fallbackUrl = cfg.supabase.url.replace(/\/$/, '') + '/rest/v1/accounts?id=eq.sys-comments-store-v1&select=*';
+        fetch(fallbackUrl, {
+          headers: {
+            'apikey': cfg.supabase.anonKey,
+            'Authorization': 'Bearer ' + cfg.supabase.anonKey
+          }
+        })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (rows) {
+            if (Array.isArray(rows) && rows.length > 0 && rows[0].password_hash) {
+              try {
+                var parsed = JSON.parse(rows[0].password_hash);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  saveLocalComments(parsed);
+                  if (callback) callback(parsed);
+                  return;
+                }
+              } catch (e) {}
+            }
+            var localSeed = loadLocalComments();
+            syncCommentsBundleFallbackToSupabase(localSeed);
+          })
+          .catch(function () {});
+      });
   }
 
   /* Cloud Sync Functions (Supabase & Firebase REST) */
@@ -455,12 +705,15 @@
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (rows) {
           if (!Array.isArray(rows)) return;
-          if (rows.length === 0) {
+          var userRows = rows.filter(function (r) {
+            return r && r.email && r.email.toLowerCase() !== INTERNAL_COMMENTS_STORE_EMAIL && r.id !== 'sys-comments-store-v1';
+          });
+          if (userRows.length === 0) {
             var localUsers = loadLocalUsers();
             localUsers.forEach(function (u) { syncUserToCloud(u); });
             return;
           }
-          var mapped = rows.map(function (r) {
+          var mapped = userRows.map(function (r) {
             return {
               id: r.id,
               name: r.name,
@@ -825,6 +1078,9 @@
 
     renderPostsGrid();
     renderAdminTables();
+    if (currentOpenPost) {
+      renderSubpageComments(currentOpenPost.id);
+    }
   }
 
   function syncCategoryFilterPills(posts) {
@@ -1299,6 +1555,8 @@
         });
     }
 
+    renderSubpageComments(found.id);
+
     if (subpageView) {
       var heroDrop = document.getElementById('hero-search-results-dropdown');
       if (heroDrop) heroDrop.hidden = true;
@@ -1307,6 +1565,325 @@
       window.scrollTo(0, 0);
     }
     return true;
+  }
+
+  /* ==========================================================================
+     7B. PER-POST COMMENTS SYSTEM (ACCOUNT-GATED, LIKES/DISLIKES, REPLIES & SUPABASE)
+     ========================================================================== */
+  function getInitialsFromName(nameStr) {
+    var parts = String(nameStr || 'Viajante').trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return 'VA';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  }
+
+  function addCommentToPost(postId, parentId, contentText) {
+    var session = getActiveSession();
+    if (!session || !session.email) {
+      openAuthModal('login');
+      return false;
+    }
+    var trimmed = String(contentText || '').trim();
+    if (!trimmed) return false;
+
+    var allComments = loadLocalComments();
+    var newComment = {
+      id: 'cmt-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+      postId: postId,
+      parentId: parentId || null,
+      authorId: session.id || ('user-' + Date.now()),
+      authorName: session.name || 'Viajante',
+      authorEmail: session.email.toLowerCase(),
+      authorRole: session.role || 'user',
+      content: trimmed,
+      likedBy: [],
+      dislikedBy: [],
+      createdAt: new Date().toISOString()
+    };
+
+    allComments.push(newComment);
+    saveLocalComments(allComments);
+    syncCommentToCloud(newComment, allComments);
+    renderSubpageComments(postId);
+    return true;
+  }
+
+  function toggleCommentVote(commentId, voteType) {
+    var session = getActiveSession();
+    if (!session || !session.email) {
+      openAuthModal('login');
+      return;
+    }
+    var userEmail = session.email.toLowerCase();
+    var allComments = loadLocalComments();
+    var target = null;
+
+    for (var i = 0; i < allComments.length; i++) {
+      if (allComments[i].id === commentId) {
+        target = allComments[i];
+        break;
+      }
+    }
+    if (!target) return;
+
+    if (!Array.isArray(target.likedBy)) target.likedBy = [];
+    if (!Array.isArray(target.dislikedBy)) target.dislikedBy = [];
+
+    var likeIdx = target.likedBy.indexOf(userEmail);
+    var dislikeIdx = target.dislikedBy.indexOf(userEmail);
+
+    if (voteType === 'like') {
+      if (likeIdx !== -1) {
+        target.likedBy.splice(likeIdx, 1);
+      } else {
+        target.likedBy.push(userEmail);
+        if (dislikeIdx !== -1) target.dislikedBy.splice(dislikeIdx, 1);
+      }
+    } else if (voteType === 'dislike') {
+      if (dislikeIdx !== -1) {
+        target.dislikedBy.splice(dislikeIdx, 1);
+      } else {
+        target.dislikedBy.push(userEmail);
+        if (likeIdx !== -1) target.likedBy.splice(likeIdx, 1);
+      }
+    }
+
+    saveLocalComments(allComments);
+    syncCommentToCloud(target, allComments);
+    if (currentOpenPost) {
+      renderSubpageComments(currentOpenPost.id);
+    }
+  }
+
+  function deleteCommentById(commentId) {
+    var session = getActiveSession();
+    if (!session) return;
+    var allComments = loadLocalComments();
+    var target = null;
+    for (var i = 0; i < allComments.length; i++) {
+      if (allComments[i].id === commentId) {
+        target = allComments[i];
+        break;
+      }
+    }
+    if (!target) return;
+    var canDelete = session.role === 'admin' || (target.authorEmail && target.authorEmail.toLowerCase() === session.email.toLowerCase());
+    if (!canDelete) return;
+
+    var remaining = allComments.filter(function (c) {
+      return c.id !== commentId && c.parentId !== commentId;
+    });
+    saveLocalComments(remaining);
+    deleteCommentFromCloud(commentId, remaining);
+    if (currentOpenPost) {
+      renderSubpageComments(currentOpenPost.id);
+    }
+  }
+
+  function createCommentCardElement(commentObj, allPostComments, isReplyCard) {
+    var session = getActiveSession();
+    var userEmail = session && session.email ? session.email.toLowerCase() : '';
+    var likedBy = Array.isArray(commentObj.likedBy) ? commentObj.likedBy : [];
+    var dislikedBy = Array.isArray(commentObj.dislikedBy) ? commentObj.dislikedBy : [];
+    var hasLiked = userEmail && likedBy.indexOf(userEmail) !== -1;
+    var hasDisliked = userEmail && dislikedBy.indexOf(userEmail) !== -1;
+
+    var card = document.createElement('div');
+    card.className = 'comment-card' + (isReplyCard ? ' is-reply' : '');
+
+    var header = document.createElement('div');
+    header.className = 'comment-card-header';
+
+    var authorWrap = document.createElement('div');
+    authorWrap.className = 'comment-author-wrap';
+
+    var avatar = document.createElement('span');
+    avatar.className = 'comment-user-avatar';
+    avatar.textContent = getInitialsFromName(commentObj.authorName);
+
+    var nameStrong = document.createElement('strong');
+    nameStrong.className = 'comment-author-name';
+    nameStrong.textContent = commentObj.authorName || 'Viajante';
+
+    var rolePill = document.createElement('span');
+    var isCommentAdmin = commentObj.authorRole === 'admin';
+    rolePill.className = 'comment-role-pill' + (isCommentAdmin ? ' is-admin' : '');
+    rolePill.textContent = isCommentAdmin ? 'Administrador' : 'Conta Viajante';
+
+    authorWrap.appendChild(avatar);
+    authorWrap.appendChild(nameStrong);
+    authorWrap.appendChild(rolePill);
+
+    var dateSpan = document.createElement('span');
+    dateSpan.className = 'comment-date-label';
+    dateSpan.textContent = formatDatePt(commentObj.createdAt);
+
+    header.appendChild(authorWrap);
+    header.appendChild(dateSpan);
+
+    var bodyP = document.createElement('p');
+    bodyP.className = 'comment-body-text';
+    bodyP.textContent = commentObj.content;
+
+    var actionsRow = document.createElement('div');
+    actionsRow.className = 'comment-actions-row';
+
+    var btnLike = document.createElement('button');
+    btnLike.type = 'button';
+    btnLike.className = 'btn-comment-vote is-like' + (hasLiked ? ' is-active' : '');
+    btnLike.innerHTML = '👍 Legal <span>(' + likedBy.length + ')</span>';
+    btnLike.addEventListener('click', function () {
+      toggleCommentVote(commentObj.id, 'like');
+    });
+
+    var btnDislike = document.createElement('button');
+    btnDislike.type = 'button';
+    btnDislike.className = 'btn-comment-vote is-dislike' + (hasDisliked ? ' is-active' : '');
+    btnDislike.innerHTML = '👎 Chato <span>(' + dislikedBy.length + ')</span>';
+    btnDislike.addEventListener('click', function () {
+      toggleCommentVote(commentObj.id, 'dislike');
+    });
+
+    var btnReply = document.createElement('button');
+    btnReply.type = 'button';
+    btnReply.className = 'btn-comment-reply';
+    btnReply.textContent = '↩ Responder';
+
+    actionsRow.appendChild(btnLike);
+    actionsRow.appendChild(btnDislike);
+    actionsRow.appendChild(btnReply);
+
+    if (session && (session.role === 'admin' || (commentObj.authorEmail && commentObj.authorEmail.toLowerCase() === userEmail))) {
+      var btnDel = document.createElement('button');
+      btnDel.type = 'button';
+      btnDel.className = 'btn-comment-delete';
+      btnDel.textContent = 'Excluir';
+      btnDel.addEventListener('click', function () {
+        deleteCommentById(commentObj.id);
+      });
+      actionsRow.appendChild(btnDel);
+    }
+
+    var replyFormWrap = document.createElement('form');
+    replyFormWrap.className = 'comment-reply-form';
+    replyFormWrap.hidden = true;
+
+    var replyTextarea = document.createElement('textarea');
+    replyTextarea.rows = 2;
+    replyTextarea.placeholder = 'Respondendo ao comentário de ' + (commentObj.authorName || 'Viajante') + '...';
+    replyTextarea.required = true;
+
+    var replyActions = document.createElement('div');
+    replyActions.className = 'comment-reply-actions';
+
+    var btnCancelReply = document.createElement('button');
+    btnCancelReply.type = 'button';
+    btnCancelReply.className = 'btn-card-admin';
+    btnCancelReply.textContent = 'Cancelar';
+    btnCancelReply.addEventListener('click', function () {
+      replyFormWrap.hidden = true;
+      replyTextarea.value = '';
+    });
+
+    var btnSendReply = document.createElement('button');
+    btnSendReply.type = 'submit';
+    btnSendReply.className = 'btn-account-solid';
+    btnSendReply.textContent = 'Publicar Resposta';
+
+    replyActions.appendChild(btnCancelReply);
+    replyActions.appendChild(btnSendReply);
+    replyFormWrap.appendChild(replyTextarea);
+    replyFormWrap.appendChild(replyActions);
+
+    btnReply.addEventListener('click', function () {
+      if (!getActiveSession()) {
+        openAuthModal('login');
+        return;
+      }
+      replyFormWrap.hidden = !replyFormWrap.hidden;
+      if (!replyFormWrap.hidden) {
+        replyTextarea.focus();
+      }
+    });
+
+    replyFormWrap.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var targetParentId = isReplyCard && commentObj.parentId ? commentObj.parentId : commentObj.id;
+      var textVal = replyTextarea.value.trim();
+      if (!textVal) return;
+      if (isReplyCard) {
+        textVal = '@' + commentObj.authorName + ' ' + textVal;
+      }
+      addCommentToPost(commentObj.postId, targetParentId, textVal);
+    });
+
+    card.appendChild(header);
+    card.appendChild(bodyP);
+    card.appendChild(actionsRow);
+    card.appendChild(replyFormWrap);
+
+    if (!isReplyCard) {
+      var childReplies = allPostComments.filter(function (c) {
+        return c.parentId === commentObj.id;
+      });
+      if (childReplies.length > 0) {
+        var repliesBox = document.createElement('div');
+        repliesBox.className = 'comment-replies-container';
+        childReplies.forEach(function (rep) {
+          repliesBox.appendChild(createCommentCardElement(rep, allPostComments, true));
+        });
+        card.appendChild(repliesBox);
+      }
+    }
+
+    return card;
+  }
+
+  function renderSubpageComments(postId) {
+    var countEl = document.getElementById('subpage-comments-count');
+    var authGate = document.getElementById('comments-auth-gate');
+    var composeForm = document.getElementById('comment-compose-form');
+    var composeAvatar = document.getElementById('comment-compose-avatar');
+    var authorDisplay = document.getElementById('comment-author-display');
+    var threadList = document.getElementById('comments-thread-list');
+    if (!threadList) return;
+
+    var session = getActiveSession();
+    if (session && session.email) {
+      if (authGate) authGate.hidden = true;
+      if (composeForm) composeForm.hidden = false;
+      if (composeAvatar) composeAvatar.textContent = getInitialsFromName(session.name);
+      if (authorDisplay) authorDisplay.textContent = session.name + ' (' + session.email + ')';
+    } else {
+      if (authGate) authGate.hidden = false;
+      if (composeForm) composeForm.hidden = true;
+    }
+
+    var allComments = loadLocalComments();
+    var postComments = allComments.filter(function (c) {
+      return c.postId === postId;
+    });
+
+    if (countEl) {
+      countEl.textContent = postComments.length + (postComments.length === 1 ? ' comentário' : ' comentários');
+    }
+
+    threadList.innerHTML = '';
+    var topLevel = postComments.filter(function (c) {
+      return !c.parentId;
+    });
+
+    if (topLevel.length === 0) {
+      var emptyP = document.createElement('p');
+      emptyP.className = 'hero-search-empty';
+      emptyP.textContent = 'Ainda não há comentários nesta postagem. Entre na sua conta e seja o primeiro a comentar!';
+      threadList.appendChild(emptyP);
+      return;
+    }
+
+    topLevel.forEach(function (cmt) {
+      threadList.appendChild(createCommentCardElement(cmt, postComments, false));
+    });
   }
 
   function closeSubpageView(pushHistory) {
@@ -1531,6 +2108,9 @@
     syncCategoryFilterPills(posts);
     renderPostsGrid();
     renderAdminTables();
+    if (currentOpenPost) {
+      renderSubpageComments(currentOpenPost.id);
+    }
   }
 
   var adminPostForm = document.getElementById('admin-post-form');
@@ -2081,6 +2661,54 @@
     });
   }
 
+  /* Comments Section Event Listeners */
+  var btnCommentGateLogin = document.getElementById('btn-comment-gate-login');
+  if (btnCommentGateLogin) {
+    btnCommentGateLogin.addEventListener('click', function () {
+      openAuthModal('login');
+    });
+  }
+
+  var btnCommentGateRegister = document.getElementById('btn-comment-gate-register');
+  if (btnCommentGateRegister) {
+    btnCommentGateRegister.addEventListener('click', function () {
+      openAuthModal('register');
+    });
+  }
+
+  var commentComposeForm = document.getElementById('comment-compose-form');
+  var commentInputText = document.getElementById('comment-input-text');
+  var commentStatusMsg = document.getElementById('comment-status-msg');
+  if (commentComposeForm) {
+    commentComposeForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!currentOpenPost) return;
+      if (!getActiveSession()) {
+        openAuthModal('login');
+        return;
+      }
+      var textVal = commentInputText ? commentInputText.value.trim() : '';
+      if (!textVal) {
+        if (commentStatusMsg) {
+          commentStatusMsg.textContent = 'Escreva uma mensagem antes de publicar seu comentário.';
+          commentStatusMsg.classList.add('is-error');
+        }
+        return;
+      }
+      var ok = addCommentToPost(currentOpenPost.id, null, textVal);
+      if (ok) {
+        if (commentInputText) commentInputText.value = '';
+        if (commentStatusMsg) {
+          commentStatusMsg.classList.remove('is-error');
+          commentStatusMsg.textContent = 'Comentário publicado e sincronizado com sucesso!';
+          setTimeout(function () {
+            if (commentStatusMsg) commentStatusMsg.textContent = '';
+          }, 3000);
+        }
+      }
+    });
+  }
+
   var postsSearchInput = document.getElementById('posts-search-input');
   var heroSearchInput = document.getElementById('hero-search-input');
   var heroResultsDropdown = document.getElementById('hero-search-results-dropdown');
@@ -2573,5 +3201,10 @@
     renderPostsGrid();
     renderAdminTables();
     inspectUrlForSubpage();
+  });
+  fetchCommentsFromCloud(function () {
+    if (currentOpenPost) {
+      renderSubpageComments(currentOpenPost.id);
+    }
   });
 })();
