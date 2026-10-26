@@ -368,14 +368,23 @@
     return 'local';
   }
 
+  var memoryPostsCache = null;
+
   function loadLocalPosts() {
+    if (Array.isArray(memoryPostsCache) && memoryPostsCache.length > 0) {
+      return memoryPostsCache.slice();
+    }
     try {
       var raw = localStorage.getItem(STORAGE_POSTS_KEY);
       if (raw) {
         var parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          memoryPostsCache = parsed.slice();
+          return parsed;
+        }
       }
     } catch (e) {}
+    memoryPostsCache = INITIAL_POSTS.slice();
     try {
       localStorage.setItem(STORAGE_POSTS_KEY, JSON.stringify(INITIAL_POSTS));
     } catch (e) {}
@@ -383,9 +392,16 @@
   }
 
   function saveLocalPosts(postsList) {
+    if (!Array.isArray(postsList)) return;
+    memoryPostsCache = postsList.slice();
     try {
       localStorage.setItem(STORAGE_POSTS_KEY, JSON.stringify(postsList));
-    } catch (e) {}
+    } catch (e) {
+      try {
+        localStorage.removeItem(STORAGE_POSTS_KEY);
+        localStorage.setItem(STORAGE_POSTS_KEY, JSON.stringify(postsList));
+      } catch (err2) {}
+    }
   }
 
   function loadLocalUsers() {
@@ -589,14 +605,14 @@
     var mode = getActiveCloudMode();
     var cfg = getCloudSettings();
     if (mode === 'supabase') {
-      var url = cfg.supabase.url.replace(/\/$/, '') + '/rest/v1/posts';
+      var url = cfg.supabase.url.replace(/\/$/, '') + '/rest/v1/posts?on_conflict=id';
       return fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'apikey': cfg.supabase.anonKey,
           'Authorization': 'Bearer ' + cfg.supabase.anonKey,
-          'Prefer': 'resolution=merge-duplicates'
+          'Prefer': 'resolution=merge-duplicates,return=minimal'
         },
         body: JSON.stringify({
           id: post.id,
@@ -915,15 +931,29 @@
     return clean.charAt(0).toUpperCase() + clean.slice(1);
   }
 
-  function resolvePostCoverSrc(post) {
-    if (post.coverUrl && post.coverUrl.trim() !== '') {
-      return post.coverUrl.trim();
-    }
-    var key = post.coverKey || 'hero-ocean-photo';
+  function resolveCatalogCoverByKey(coverKey) {
+    var key = (coverKey && coverKey !== 'custom') ? coverKey : 'hero-ocean-photo';
     if (window.__PLATE_FALLBACKS && window.__PLATE_FALLBACKS[key]) {
       return window.__PLATE_FALLBACKS[key];
     }
     return 'assets/plates/' + key + '.png';
+  }
+
+  function resolvePostCoverSrc(post) {
+    if (post && post.coverUrl && String(post.coverUrl).trim() !== '') {
+      return String(post.coverUrl).trim();
+    }
+    var key = (post && post.coverKey) ? post.coverKey : 'hero-ocean-photo';
+    return resolveCatalogCoverByKey(key);
+  }
+
+  function bindCoverImgFallback(imgEl, post) {
+    if (!imgEl) return;
+    var fallbackKey = (post && post.coverKey && post.coverKey !== 'custom') ? post.coverKey : 'hero-ocean-photo';
+    imgEl.onerror = function () {
+      imgEl.onerror = null;
+      imgEl.src = resolveCatalogCoverByKey(fallbackKey);
+    };
   }
 
   function formatDatePt(isoStr) {
@@ -1282,6 +1312,7 @@
     var fig = document.createElement('figure');
     fig.className = 'post-card-cover';
     var img = document.createElement('img');
+    bindCoverImgFallback(img, post);
     img.src = resolvePostCoverSrc(post);
     img.alt = post.title;
     fig.appendChild(img);
@@ -1523,6 +1554,7 @@
     if (titleEl) titleEl.textContent = found.title;
     if (excerptEl) excerptEl.textContent = found.excerpt;
     if (coverImg) {
+      bindCoverImgFallback(coverImg, found);
       coverImg.src = resolvePostCoverSrc(found);
       coverImg.alt = found.title;
     }
@@ -2024,17 +2056,177 @@
   var postCoverFile = document.getElementById('post-cover-file');
   var postCoverUrl = document.getElementById('post-cover-url');
   var postCoverPreset = document.getElementById('post-cover-preset');
+  var coverPreviewImg = document.getElementById('post-cover-preview-img');
+  var coverSourceBadge = document.getElementById('post-cover-source-badge');
+  var coverSourceLabel = document.getElementById('post-cover-source-label');
+  var coverSourceHint = document.getElementById('post-cover-source-hint');
+  var btnClearCoverCustom = document.getElementById('btn-clear-cover-custom');
+
+  var pendingUploadedDataUrl = '';
+  var pendingUploadedFileName = '';
+  var isCompressingCover = false;
+
+  var CATALOG_COVER_LABELS = {
+    'hero-ocean-photo': 'Enseada Turquesa & Falésias (Catálogo)',
+    'card-1-photo': 'Ilhas Gregas & Mar Egeu (Catálogo)',
+    'card-2-photo': 'Fiordes da Noruega (Catálogo)',
+    'card-3-photo': 'Costa Amalfitana (Catálogo)'
+  };
+
+  function compressImageDataUrl(rawDataUrl, maxWidth, maxHeight, quality, callback) {
+    var img = new Image();
+    img.onload = function () {
+      try {
+        var w = img.naturalWidth || img.width || 1200;
+        var h = img.naturalHeight || img.height || 800;
+        var scale = Math.min(1, maxWidth / Math.max(w, 1), maxHeight / Math.max(h, 1));
+        var targetW = Math.max(1, Math.round(w * scale));
+        var targetH = Math.max(1, Math.round(h * scale));
+        var canvas = document.createElement('canvas');
+        canvas.width = targetW;
+        canvas.height = targetH;
+        var ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#0c192c';
+          ctx.fillRect(0, 0, targetW, targetH);
+          ctx.drawImage(img, 0, 0, targetW, targetH);
+          var compressed = canvas.toDataURL('image/jpeg', quality || 0.82);
+          callback(compressed);
+          return;
+        }
+      } catch (e) {}
+      callback(rawDataUrl);
+    };
+    img.onerror = function () {
+      callback(rawDataUrl);
+    };
+    img.src = rawDataUrl;
+  }
+
+  function updateCoverPreviewUI() {
+    var presetVal = postCoverPreset ? postCoverPreset.value : 'hero-ocean-photo';
+    var typedUrl = postCoverUrl ? postCoverUrl.value.trim() : '';
+    var activeSrc = '';
+    var isCustom = false;
+    var badgeText = 'Catálogo VÉRTICE AZUL';
+    var labelText = CATALOG_COVER_LABELS[presetVal] || 'Enseada Turquesa & Falésias (Catálogo)';
+    var hintText = 'Escolha uma foto do catálogo acima, cole um link de imagem ou clique em «Enviar Foto».';
+
+    if (presetVal === 'custom' && (typedUrl || pendingUploadedDataUrl)) {
+      isCustom = true;
+      if (typedUrl) {
+        activeSrc = typedUrl;
+        badgeText = 'URL Externa Personalizada';
+        labelText = typedUrl;
+        hintText = 'Usando imagem de link externo. Para trocar, cole outro link, envie uma foto ou escolha uma opção do catálogo.';
+      } else {
+        activeSrc = pendingUploadedDataUrl;
+        badgeText = 'Foto Enviada (Otimizada)';
+        var kbSize = Math.max(1, Math.round((pendingUploadedDataUrl.length * 0.75) / 1024));
+        labelText = (pendingUploadedFileName || 'Imagem personalizada') + ' (~' + kbSize + ' KB)';
+        hintText = 'Imagem comprimida e pronta para publicação instantânea na subpágina e na nuvem.';
+      }
+    } else if (presetVal === 'custom') {
+      activeSrc = resolveCatalogCoverByKey('hero-ocean-photo');
+      badgeText = 'Aguardando Imagem';
+      labelText = 'Cole um link no campo acima ou clique em «Enviar Foto»';
+      hintText = 'Se nenhum link ou arquivo for informado, a capa padrão do catálogo será utilizada.';
+    } else {
+      activeSrc = resolveCatalogCoverByKey(presetVal);
+    }
+
+    if (coverPreviewImg) {
+      coverPreviewImg.onerror = function () {
+        coverPreviewImg.onerror = null;
+        coverPreviewImg.src = resolveCatalogCoverByKey('hero-ocean-photo');
+        if (coverSourceHint) {
+          coverSourceHint.textContent = 'Aviso: não foi possível carregar a prévia deste link. Verifique se é um link direto de imagem (.jpg, .png, .webp).';
+        }
+      };
+      coverPreviewImg.src = activeSrc;
+    }
+    if (coverSourceBadge) {
+      coverSourceBadge.textContent = badgeText;
+      coverSourceBadge.classList.toggle('is-custom', isCustom);
+    }
+    if (coverSourceLabel) coverSourceLabel.textContent = labelText;
+    if (coverSourceHint) coverSourceHint.textContent = hintText;
+    if (btnClearCoverCustom) btnClearCoverCustom.hidden = !isCustom;
+  }
 
   if (postCoverFile) {
     postCoverFile.addEventListener('change', function () {
       var file = postCoverFile.files && postCoverFile.files[0];
       if (!file) return;
+      var fileName = file.name || 'foto-computador.jpg';
+      postCoverFile.value = '';
+      isCompressingCover = true;
+      var saveBtn = document.getElementById('btn-save-post');
+      if (saveBtn) saveBtn.disabled = true;
+      if (coverSourceLabel) coverSourceLabel.textContent = 'Otimizando imagem «' + fileName + '»...';
+
       var reader = new FileReader();
       reader.onload = function (ev) {
-        if (postCoverUrl) postCoverUrl.value = ev.target.result;
-        if (postCoverPreset) postCoverPreset.value = 'custom';
+        var rawResult = ev.target && ev.target.result ? String(ev.target.result) : '';
+        compressImageDataUrl(rawResult, 1200, 850, 0.82, function (compressedDataUrl) {
+          pendingUploadedDataUrl = compressedDataUrl;
+          pendingUploadedFileName = fileName;
+          isCompressingCover = false;
+          if (saveBtn) saveBtn.disabled = false;
+          if (postCoverUrl) {
+            postCoverUrl.value = '';
+            postCoverUrl.placeholder = 'Foto enviada (' + fileName + ') — ou cole um link https://...';
+          }
+          if (postCoverPreset) postCoverPreset.value = 'custom';
+          updateCoverPreviewUI();
+        });
+      };
+      reader.onerror = function () {
+        isCompressingCover = false;
+        if (saveBtn) saveBtn.disabled = false;
       };
       reader.readAsDataURL(file);
+    });
+  }
+
+  if (postCoverPreset) {
+    postCoverPreset.addEventListener('change', function () {
+      if (postCoverPreset.value !== 'custom') {
+        pendingUploadedDataUrl = '';
+        pendingUploadedFileName = '';
+        if (postCoverUrl) {
+          postCoverUrl.value = '';
+          postCoverUrl.placeholder = 'https://exemplo.com/foto.jpg';
+        }
+      }
+      updateCoverPreviewUI();
+    });
+  }
+
+  if (postCoverUrl) {
+    postCoverUrl.addEventListener('input', function () {
+      var val = postCoverUrl.value.trim();
+      if (val !== '') {
+        if (postCoverPreset && postCoverPreset.value !== 'custom') {
+          postCoverPreset.value = 'custom';
+        }
+      }
+      updateCoverPreviewUI();
+    });
+  }
+
+  if (btnClearCoverCustom) {
+    btnClearCoverCustom.addEventListener('click', function () {
+      pendingUploadedDataUrl = '';
+      pendingUploadedFileName = '';
+      if (postCoverUrl) {
+        postCoverUrl.value = '';
+        postCoverUrl.placeholder = 'https://exemplo.com/foto.jpg';
+      }
+      if (postCoverPreset) {
+        postCoverPreset.value = 'hero-ocean-photo';
+      }
+      updateCoverPreviewUI();
     });
   }
 
@@ -2053,6 +2245,8 @@
 
   function loadPostIntoEditor(post) {
     var adminSection = document.getElementById('painel-admin');
+    var editorTabBtn = document.querySelector('[data-admin-tab="editor"]');
+    if (editorTabBtn) editorTabBtn.click();
     if (adminSection) {
       adminSection.hidden = false;
       adminSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2063,8 +2257,41 @@
     if (postCategoryInput) postCategoryInput.value = slugify(post.category);
     if (postSlugInput) postSlugInput.value = slugify(post.slug);
     slugManuallyEdited = true;
-    if (postCoverPreset) postCoverPreset.value = post.coverUrl ? 'custom' : (post.coverKey || 'hero-ocean-photo');
-    if (postCoverUrl) postCoverUrl.value = post.coverUrl || '';
+
+    var rawCoverUrl = (post.coverUrl && String(post.coverUrl).trim()) || '';
+    if (rawCoverUrl.indexOf('data:image/') === 0) {
+      pendingUploadedDataUrl = rawCoverUrl;
+      pendingUploadedFileName = 'Capa personalizada atual';
+      if (postCoverUrl) {
+        postCoverUrl.value = '';
+        postCoverUrl.placeholder = 'Capa enviada ativa (envie outra foto ou cole um link para trocar)';
+      }
+      if (postCoverPreset) postCoverPreset.value = 'custom';
+      if (rawCoverUrl.length > 450000) {
+        compressImageDataUrl(rawCoverUrl, 1200, 850, 0.82, function (compressed) {
+          pendingUploadedDataUrl = compressed;
+          updateCoverPreviewUI();
+        });
+      }
+    } else if (rawCoverUrl !== '') {
+      pendingUploadedDataUrl = '';
+      pendingUploadedFileName = '';
+      if (postCoverUrl) {
+        postCoverUrl.value = rawCoverUrl;
+        postCoverUrl.placeholder = 'https://exemplo.com/foto.jpg';
+      }
+      if (postCoverPreset) postCoverPreset.value = 'custom';
+    } else {
+      pendingUploadedDataUrl = '';
+      pendingUploadedFileName = '';
+      if (postCoverUrl) {
+        postCoverUrl.value = '';
+        postCoverUrl.placeholder = 'https://exemplo.com/foto.jpg';
+      }
+      if (postCoverPreset) {
+        postCoverPreset.value = (post.coverKey && post.coverKey !== 'custom') ? post.coverKey : 'hero-ocean-photo';
+      }
+    }
 
     var seasonIn = document.getElementById('post-season-input');
     var durIn = document.getElementById('post-duration-input');
@@ -2085,6 +2312,7 @@
     if (saveBtn) saveBtn.textContent = 'Salvar Alterações na Subpágina';
 
     updateLiveUrlPreview();
+    updateCoverPreviewUI();
   }
 
   function resetPostEditor() {
@@ -2093,9 +2321,23 @@
     var editId = document.getElementById('post-edit-id');
     if (editId) editId.value = '';
     slugManuallyEdited = false;
+    pendingUploadedDataUrl = '';
+    pendingUploadedFileName = '';
+    isCompressingCover = false;
+    if (postCoverUrl) {
+      postCoverUrl.value = '';
+      postCoverUrl.placeholder = 'https://exemplo.com/foto.jpg';
+    }
+    if (postCoverPreset) {
+      postCoverPreset.value = 'hero-ocean-photo';
+    }
     var saveBtn = document.getElementById('btn-save-post');
-    if (saveBtn) saveBtn.textContent = 'Publicar Subpágina';
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Publicar Subpágina';
+    }
     updateLiveUrlPreview();
+    updateCoverPreviewUI();
   }
 
   function deletePostById(postId) {
@@ -2128,6 +2370,14 @@
         return;
       }
 
+      if (isCompressingCover) {
+        if (adminPostStatus) {
+          adminPostStatus.textContent = 'Aguarde um instante: otimizando a imagem selecionada...';
+          adminPostStatus.classList.remove('is-error');
+        }
+        return;
+      }
+
       var title = postTitleInput ? postTitleInput.value.trim() : '';
       var category = slugify(postCategoryInput ? postCategoryInput.value : 'brasil') || 'brasil';
       var slug = slugify(postSlugInput ? postSlugInput.value : title);
@@ -2143,8 +2393,31 @@
       }
 
       var editIdVal = (document.getElementById('post-edit-id') || {}).value || '';
+      var posts = loadLocalPosts();
+      var existingIdx = -1;
+      var existingPost = null;
+      for (var i = 0; i < posts.length; i++) {
+        if (posts[i].id === editIdVal) {
+          existingIdx = i;
+          existingPost = posts[i];
+          break;
+        }
+      }
+
       var presetVal = postCoverPreset ? postCoverPreset.value : 'hero-ocean-photo';
-      var customUrlVal = postCoverUrl ? postCoverUrl.value.trim() : '';
+      var typedUrlVal = postCoverUrl ? postCoverUrl.value.trim() : '';
+      var resolvedCoverKey = 'hero-ocean-photo';
+      var resolvedCoverUrl = '';
+
+      if (presetVal === 'custom') {
+        resolvedCoverUrl = typedUrlVal || pendingUploadedDataUrl || '';
+        resolvedCoverKey = (existingPost && existingPost.coverKey && existingPost.coverKey !== 'custom')
+          ? existingPost.coverKey
+          : 'hero-ocean-photo';
+      } else {
+        resolvedCoverKey = presetVal || 'hero-ocean-photo';
+        resolvedCoverUrl = '';
+      }
 
       var newPost = {
         id: editIdVal || ('post-' + Date.now()),
@@ -2153,25 +2426,17 @@
         slug: slug,
         excerpt: excerpt.trim(),
         content: content.trim(),
-        coverKey: presetVal === 'custom' ? 'hero-ocean-photo' : presetVal,
-        coverUrl: presetVal === 'custom' ? customUrlVal : customUrlVal,
+        coverKey: resolvedCoverKey,
+        coverUrl: resolvedCoverUrl,
         season: ((document.getElementById('post-season-input') || {}).value || 'Ano todo').trim(),
         duration: ((document.getElementById('post-duration-input') || {}).value || '4 a 6 dias').trim(),
         style: ((document.getElementById('post-style-input') || {}).value || 'Cultura & Roteiro Sob Medida').trim(),
         readingTime: ((document.getElementById('post-reading-input') || {}).value || '6 min de leitura').trim(),
         tip: ((document.getElementById('post-tip-input') || {}).value || '').trim(),
-        author: session.name || 'Administrador VÉRTICE AZUL',
-        createdAt: new Date().toISOString()
+        author: (existingPost && existingPost.author) || session.name || 'Administrador VÉRTICE AZUL',
+        createdAt: (existingPost && existingPost.createdAt) || new Date().toISOString()
       };
 
-      var posts = loadLocalPosts();
-      var existingIdx = -1;
-      for (var i = 0; i < posts.length; i++) {
-        if (posts[i].id === newPost.id) {
-          existingIdx = i;
-          break;
-        }
-      }
       if (existingIdx !== -1) {
         posts[existingIdx] = newPost;
       } else {
@@ -2187,12 +2452,15 @@
 
       if (adminPostStatus) {
         adminPostStatus.classList.remove('is-error');
-        adminPostStatus.textContent = 'Subpágina publicada com sucesso em /' + newPost.category + '/' + newPost.slug + '! Abrindo visualização...';
+        adminPostStatus.textContent = 'Subpágina salva com sucesso em /' + newPost.category + '/' + newPost.slug + '!';
       }
 
-      setTimeout(function () {
-        openSubpage(newPost.category, newPost.slug, true);
-      }, 350);
+      var adminSection = document.getElementById('painel-admin');
+      if (adminSection) {
+        adminSection.hidden = true;
+      }
+
+      openSubpage(newPost.category, newPost.slug, true);
     });
   }
 
@@ -2781,6 +3049,7 @@
 
       var thumb = document.createElement('img');
       thumb.className = 'hero-search-result-thumb';
+      bindCoverImgFallback(thumb, post);
       thumb.src = resolvePostCoverSrc(post);
       thumb.alt = post.title;
 
@@ -3191,6 +3460,7 @@
   var initialPosts = loadLocalPosts();
   syncCategoryFilterPills(initialPosts);
   updateLiveUrlPreview();
+  updateCoverPreviewUI();
   updateAccountUI();
   inspectUrlForSubpage();
   fetchUsersFromCloud(function () {
