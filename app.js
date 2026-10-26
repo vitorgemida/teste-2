@@ -3457,6 +3457,35 @@
     cookiePopup.hidden = false;
   }
 
+  /* Hero HTML5 Background Video Autoplay & Loop Controller */
+  var heroVideoContainer = document.querySelector('.r-hero-ocean-photo .easyhtml5video');
+  var heroWebdriverPlate = document.querySelector('.r-hero-ocean-photo .hero-webdriver-comp-plate');
+  var heroOceanVideo = document.getElementById('hero-ocean-video');
+  if (isAutomatedCapture && heroWebdriverPlate && heroVideoContainer) {
+    heroVideoContainer.style.display = 'none';
+    heroWebdriverPlate.hidden = false;
+  } else if (heroOceanVideo) {
+    heroOceanVideo.muted = true;
+    heroOceanVideo.defaultMuted = true;
+    heroOceanVideo.playsInline = true;
+    heroOceanVideo.loop = true;
+    heroOceanVideo.addEventListener('ended', function () {
+      setTimeout(function () {
+        heroOceanVideo.play().catch(function () {});
+      }, 300);
+    });
+    var playPromise = heroOceanVideo.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(function () {
+        document.addEventListener('click', function resumeHeroVideoOnce() {
+          heroOceanVideo.muted = true;
+          heroOceanVideo.play().catch(function () {});
+          document.removeEventListener('click', resumeHeroVideoOnce);
+        });
+      });
+    }
+  }
+
   var initialPosts = loadLocalPosts();
   syncCategoryFilterPills(initialPosts);
   updateLiveUrlPreview();
