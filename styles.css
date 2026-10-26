@@ -22,6 +22,22 @@
   font-display: block;
 }
 
+@font-face {
+  font-family: 'Dancing Script';
+  src: url('assets/fonts/dancing-script-bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Satisfy';
+  src: url('assets/fonts/satisfy-regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg-page: #f6f7f8;
   --bg-surface: #ffffff;
@@ -135,18 +151,46 @@ a {
   position: absolute;
   left: var(--r-brand-logo-x);
   top: var(--r-brand-logo-y);
-  width: var(--r-brand-logo-w);
+  width: auto;
+  min-width: var(--r-brand-logo-w);
   height: var(--r-brand-logo-h);
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  font-size: calc(30 * var(--u));
+  gap: calc(8 * var(--u));
+  font-family: 'Dancing Script', 'Satisfy', 'Segoe Script', 'Brush Script MT', cursive;
+  font-size: calc(31 * var(--u));
   font-weight: 700;
   color: #0f152d;
-  letter-spacing: -0.02em;
+  letter-spacing: 0em;
   text-decoration: none;
   line-height: 1;
   white-space: nowrap;
   z-index: 5;
+  transition: opacity 0.2s ease;
+}
+
+.r-brand-logo:hover {
+  opacity: 0.92;
+}
+
+.brand-airplane-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-blue);
+  line-height: 1;
+  transition: transform 0.35s var(--ease-out-expo);
+}
+
+.r-brand-logo:hover .brand-airplane-wrap {
+  transform: translate(3px, -2px);
+}
+
+.brand-airplane-svg {
+  display: block;
+  width: calc(32 * var(--u));
+  height: calc(26 * var(--u));
+  overflow: visible;
 }
 
 .r-nav-destinos,
@@ -1253,11 +1297,25 @@ a {
 }
 
 .footer-brand strong {
-  display: block;
-  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Dancing Script', 'Satisfy', 'Segoe Script', 'Brush Script MT', cursive;
+  font-size: 24px;
   font-weight: 700;
   color: var(--ink-primary);
   margin-bottom: 6px;
+}
+
+.footer-brand .brand-airplane-wrap {
+  color: var(--accent-blue);
+}
+
+.footer-brand .brand-airplane-svg {
+  display: block;
+  width: 26px;
+  height: 20px;
+  overflow: visible;
 }
 
 .footer-brand p {
@@ -1787,15 +1845,36 @@ body.is-subpage-active #conta {
 }
 
 .subpage-brand-logo {
-  font-size: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Dancing Script', 'Satisfy', 'Segoe Script', 'Brush Script MT', cursive;
+  font-size: 26px;
   font-weight: 700;
   color: var(--ink-primary);
   text-decoration: none;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.01em;
+  transition: opacity 0.2s ease;
 }
 
 .subpage-brand-logo:hover {
+  color: var(--ink-primary);
+  opacity: 0.9;
+}
+
+.subpage-brand-logo .brand-airplane-wrap {
   color: var(--accent-blue);
+}
+
+.subpage-brand-logo:hover .brand-airplane-wrap {
+  transform: translate(3px, -2px);
+}
+
+.subpage-brand-logo .brand-airplane-svg {
+  display: block;
+  width: 28px;
+  height: 22px;
+  overflow: visible;
 }
 
 .subpage-masthead-tag {
@@ -3168,10 +3247,19 @@ body.is-subpage-active #conta {
     grid-column: 2 / 5;
     grid-row: 1;
     align-self: center;
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
+    font-family: 'Dancing Script', 'Satisfy', 'Segoe Script', 'Brush Script MT', cursive;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
     color: var(--ink-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .r-brand-logo .brand-airplane-svg {
+    width: 26px;
+    height: 20px;
   }
 
   .r-nav-cta {
