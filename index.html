@@ -365,9 +365,21 @@
               <div class="form-field">
                 <label for="post-cover-url">URL da Imagem ou Upload Local</label>
                 <div class="cover-upload-row">
-                  <input type="url" id="post-cover-url" placeholder="https://exemplo.com/foto.jpg">
+                  <input type="text" id="post-cover-url" placeholder="https://exemplo.com/foto.jpg">
                   <label class="btn-upload-file" for="post-cover-file">Enviar Foto</label>
                   <input type="file" id="post-cover-file" accept="image/*" hidden>
+                </div>
+              </div>
+
+              <div class="form-field full-span">
+                <div class="cover-preview-banner" id="post-cover-preview-wrap">
+                  <img id="post-cover-preview-img" class="cover-preview-thumb" src="assets/plates/hero-ocean-photo.png" alt="Pré-visualização da imagem de capa">
+                  <div class="cover-preview-info">
+                    <span class="cover-preview-badge" id="post-cover-source-badge">Catálogo VÉRTICE AZUL</span>
+                    <strong id="post-cover-source-label">Enseada Turquesa &amp; Falésias (Catálogo)</strong>
+                    <small id="post-cover-source-hint">Escolha uma foto do catálogo acima, cole um link de imagem ou clique em «Enviar Foto» (compressão automática instantânea).</small>
+                  </div>
+                  <button type="button" class="btn-clear-cover-custom" id="btn-clear-cover-custom" hidden>Usar Foto do Catálogo</button>
                 </div>
               </div>
 
