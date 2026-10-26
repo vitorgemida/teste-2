@@ -226,6 +226,7 @@
   var STORAGE_SESSION_KEY = 'vertice_azul_session_v1';
   var STORAGE_CLOUD_KEY = 'vertice_azul_cloud_cfg_v1';
   var STORAGE_BOOKMARKS_KEY = 'vertice_azul_bookmarks_v1';
+  var STORAGE_COOKIE_CONSENT_KEY = 'vertice_azul_cookies_consent_v1';
 
   var DEFAULT_ADMIN_USER = {
     id: 'admin-default',
@@ -870,7 +871,151 @@
     });
   }
 
-  function createPostCardElement(post) {
+  function normalizeSearchText(str) {
+    return String(str || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function stemSearchWord(word) {
+    var w = String(word || '').trim();
+    if (w.length <= 3) return w;
+    return w
+      .replace(/(oes|aes|ais|eis|ois|uis)$/, '')
+      .replace(/(mente|amento|imento|acao|icoes)$/, '')
+      .replace(/(es|os|as|is|s|a|o)$/, '');
+  }
+
+  function isOneEditApart(a, b) {
+    if (Math.abs(a.length - b.length) > 1) return false;
+    var i = 0;
+    var j = 0;
+    var edits = 0;
+    while (i < a.length && j < b.length) {
+      if (a[i] === b[j]) {
+        i++;
+        j++;
+      } else {
+        edits++;
+        if (edits > 1) return false;
+        if (a.length > b.length) i++;
+        else if (b.length > a.length) j++;
+        else {
+          i++;
+          j++;
+        }
+      }
+    }
+    if (i < a.length || j < b.length) edits++;
+    return edits <= 1;
+  }
+
+  function countSubstringOccurrences(haystack, needle) {
+    if (!needle || !haystack) return 0;
+    var count = 0;
+    var pos = 0;
+    while (true) {
+      var idx = haystack.indexOf(needle, pos);
+      if (idx === -1) break;
+      count++;
+      pos = idx + needle.length;
+    }
+    return count;
+  }
+
+  function computePostRelevance(post, rawQuery) {
+    var normQuery = normalizeSearchText(rawQuery);
+    if (!normQuery) return 0;
+
+    var stopWords = {
+      de: 1, da: 1, do: 1, das: 1, dos: 1, em: 1, na: 1, no: 1, nas: 1, nos: 1,
+      para: 1, por: 1, com: 1, sem: 1, um: 1, uma: 1, uns: 1, umas: 1,
+      o: 1, a: 1, os: 1, as: 1, e: 1, ou: 1, que: 1, como: 1, onde: 1, pelo: 1, pela: 1
+    };
+
+    var allWords = normQuery.split(' ').filter(Boolean);
+    var meaningfulWords = allWords.filter(function (w) { return !stopWords[w]; });
+    var tokens = meaningfulWords.length > 0 ? meaningfulWords : allWords;
+
+    var titleNorm = normalizeSearchText(post.title);
+    var catNorm = normalizeSearchText(post.category + ' ' + formatCategoryDisplay(post.category) + ' ' + post.slug);
+    var metaNorm = normalizeSearchText((post.season || '') + ' ' + (post.style || '') + ' ' + (post.duration || '') + ' ' + (post.author || ''));
+    var excerptNorm = normalizeSearchText((post.excerpt || '') + ' ' + (post.tip || ''));
+    var contentNorm = normalizeSearchText(post.content || '');
+
+    var score = 0;
+
+    if (titleNorm.indexOf(normQuery) !== -1) score += 120;
+    if (catNorm.indexOf(normQuery) !== -1) score += 90;
+    if (metaNorm.indexOf(normQuery) !== -1) score += 65;
+    if (excerptNorm.indexOf(normQuery) !== -1) score += 55;
+    if (contentNorm.indexOf(normQuery) !== -1) score += 35;
+
+    var titleWords = titleNorm.split(' ').filter(Boolean);
+    var catWords = catNorm.split(' ').filter(Boolean);
+    var excerptWords = excerptNorm.split(' ').filter(Boolean);
+    var matchedTokens = 0;
+
+    tokens.forEach(function (tk) {
+      var tokenScore = 0;
+      var stem = stemSearchWord(tk);
+      var hasStem = stem.length >= 3;
+
+      if (titleWords.indexOf(tk) !== -1) {
+        tokenScore += 50;
+      } else if (titleNorm.indexOf(tk) !== -1 || (hasStem && titleNorm.indexOf(stem) !== -1)) {
+        tokenScore += 35;
+      }
+
+      if (catWords.indexOf(tk) !== -1) {
+        tokenScore += 45;
+      } else if (catNorm.indexOf(tk) !== -1 || (hasStem && catNorm.indexOf(stem) !== -1)) {
+        tokenScore += 30;
+      }
+
+      if (metaNorm.indexOf(tk) !== -1 || (hasStem && metaNorm.indexOf(stem) !== -1)) {
+        tokenScore += 25;
+      }
+
+      if (excerptNorm.indexOf(tk) !== -1 || (hasStem && excerptNorm.indexOf(stem) !== -1)) {
+        tokenScore += 22;
+      }
+
+      var contentHits = countSubstringOccurrences(contentNorm, tk);
+      if (contentHits === 0 && hasStem) {
+        contentHits = countSubstringOccurrences(contentNorm, stem);
+      }
+      if (contentHits > 0) {
+        tokenScore += 12 + Math.min(contentHits * 3, 18);
+      }
+
+      if (tokenScore === 0 && tk.length >= 4) {
+        var fuzzyHit = titleWords.concat(catWords).concat(excerptWords).some(function (w) {
+          return w.length >= 4 && isOneEditApart(tk, w);
+        });
+        if (fuzzyHit) {
+          tokenScore += 15;
+        }
+      }
+
+      if (tokenScore > 0) {
+        matchedTokens++;
+        score += tokenScore;
+      }
+    });
+
+    if (tokens.length > 1 && matchedTokens > 1) {
+      score += matchedTokens * 30;
+    }
+
+    return score;
+  }
+
+  function createPostCardElement(post, relevanceMeta) {
     var session = getActiveSession();
     var isAdmin = session && session.role === 'admin';
     var subpagePath = buildSubpageRelativePath(post.category, post.slug);
@@ -903,6 +1048,12 @@
     dateLabel.textContent = formatDatePt(post.createdAt) + ' · ' + (post.readingTime || '6 min de leitura');
 
     metaTop.appendChild(catPill);
+    if (relevanceMeta && relevanceMeta.label) {
+      var relBadge = document.createElement('span');
+      relBadge.className = 'post-relevance-badge';
+      relBadge.textContent = relevanceMeta.label;
+      metaTop.appendChild(relBadge);
+    }
     metaTop.appendChild(dateLabel);
 
     var h3 = document.createElement('h3');
@@ -978,31 +1129,70 @@
     if (!grid) return;
     var posts = loadLocalPosts();
     var bookmarks = getSavedBookmarks();
-    var q = activeSearchQuery.trim().toLowerCase();
+    var rawQ = activeSearchQuery.trim();
+    var hasQuery = rawQ.length > 0;
 
-    var filtered = posts.filter(function (p) {
+    var clearBtn = document.getElementById('btn-clear-search');
+    if (clearBtn) clearBtn.hidden = !hasQuery;
+
+    var relevanceBar = document.getElementById('search-relevance-bar');
+    var relevanceText = document.getElementById('search-relevance-text');
+
+    var scoredList = [];
+    posts.forEach(function (p) {
       if (activeFilterCategory === 'saved') {
-        if (bookmarks.indexOf(p.id) === -1) return false;
-      } else if (activeFilterCategory !== 'all') {
-        if (slugify(p.category) !== activeFilterCategory) return false;
+        if (bookmarks.indexOf(p.id) === -1) return;
+      } else if (!hasQuery && activeFilterCategory !== 'all') {
+        if (slugify(p.category) !== activeFilterCategory) return;
       }
-      if (q) {
-        var hay = (p.title + ' ' + p.category + ' ' + p.slug + ' ' + p.excerpt + ' ' + p.content).toLowerCase();
-        if (hay.indexOf(q) === -1) return false;
+
+      if (hasQuery) {
+        var relScore = computePostRelevance(p, rawQ);
+        if (relScore > 0) {
+          scoredList.push({ post: p, score: relScore });
+        }
+      } else {
+        scoredList.push({ post: p, score: 0 });
       }
-      return true;
     });
 
+    if (hasQuery) {
+      scoredList.sort(function (a, b) {
+        return b.score - a.score;
+      });
+    }
+
+    if (relevanceBar && relevanceText) {
+      if (hasQuery) {
+        relevanceBar.hidden = false;
+        relevanceText.textContent = 'Pesquisa por «' + rawQ + '»: ' + scoredList.length + (scoredList.length === 1 ? ' postagem encontrada (ordenada por relevância)' : ' postagens encontradas (ordenadas por relevância)');
+      } else {
+        relevanceBar.hidden = true;
+      }
+    }
+
     grid.innerHTML = '';
-    if (filtered.length === 0) {
+    if (scoredList.length === 0) {
       var empty = document.createElement('p');
-      empty.textContent = 'Nenhuma publicação encontrada para este filtro.';
+      empty.textContent = hasQuery
+        ? 'Nenhuma postagem encontrada para «' + rawQ + '». Tente outra palavra-chave ou clique em "Mostrar todas as postagens".'
+        : 'Nenhuma publicação encontrada para este filtro.';
       grid.appendChild(empty);
       return;
     }
 
-    filtered.forEach(function (post) {
-      grid.appendChild(createPostCardElement(post));
+    var topScore = hasQuery && scoredList.length > 0 ? scoredList[0].score : 1;
+    scoredList.forEach(function (item, idx) {
+      var relMeta = null;
+      if (hasQuery) {
+        var pct = Math.max(65, Math.min(99, Math.round((item.score / Math.max(topScore, 1)) * 98)));
+        relMeta = {
+          label: (idx === 0 && scoredList.length > 1)
+            ? 'Mais Relevante (' + pct + '%)'
+            : 'Relevância: ' + pct + '%'
+        };
+      }
+      grid.appendChild(createPostCardElement(item.post, relMeta));
     });
   }
 
@@ -1881,10 +2071,57 @@
   }
 
   var postsSearchInput = document.getElementById('posts-search-input');
+  var heroSearchInput = document.getElementById('hero-search-input');
+  var btnClearSearch = document.getElementById('btn-clear-search');
+  var btnResetRelevance = document.getElementById('btn-reset-relevance');
+
+  function applyFreeSearchQuery(queryValue, shouldScrollToResults) {
+    activeSearchQuery = String(queryValue || '');
+    if (postsSearchInput && postsSearchInput.value !== activeSearchQuery) {
+      postsSearchInput.value = activeSearchQuery;
+    }
+    if (heroSearchInput && heroSearchInput.value !== activeSearchQuery) {
+      heroSearchInput.value = activeSearchQuery;
+    }
+    if (activeSearchQuery.trim() !== '' && activeFilterCategory !== 'all') {
+      activeFilterCategory = 'all';
+      syncCategoryFilterPills(loadLocalPosts());
+    }
+    renderPostsGrid();
+    if (shouldScrollToResults) {
+      closeSubpageView(true);
+      var pubSec = document.getElementById('publicacoes');
+      if (pubSec) pubSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   if (postsSearchInput) {
     postsSearchInput.addEventListener('input', function () {
-      activeSearchQuery = postsSearchInput.value || '';
-      renderPostsGrid();
+      applyFreeSearchQuery(postsSearchInput.value || '', false);
+    });
+  }
+
+  if (heroSearchInput) {
+    heroSearchInput.addEventListener('input', function () {
+      applyFreeSearchQuery(heroSearchInput.value || '', false);
+    });
+    heroSearchInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyFreeSearchQuery(heroSearchInput.value || '', true);
+      }
+    });
+  }
+
+  if (btnClearSearch) {
+    btnClearSearch.addEventListener('click', function () {
+      applyFreeSearchQuery('', false);
+    });
+  }
+
+  if (btnResetRelevance) {
+    btnResetRelevance.addEventListener('click', function () {
+      applyFreeSearchQuery('', false);
     });
   }
 
@@ -1901,14 +2138,6 @@
   /* ==========================================================================
      11. HERO SEARCH BAR, ITINERARY WORKBENCH & PLANNER INTERACTIONS
      ========================================================================== */
-  var DESTINO_OPTIONS = ['Ilhas Gregas', 'Fiordes da Noruega', 'Costa Amalfitana', 'São João de Caruaru (Brasil)'];
-  var EPOCA_OPTIONS = ['Maio a Junho', 'Junho a Agosto', 'Setembro a Outubro', 'Maio a Setembro'];
-  var ESTILO_OPTIONS = ['Veleiro & Vilas Costeiras', 'Iate Clássico & Palazzos', 'Expedição Ártica & Cabanas', 'Cultura & Gastronomia'];
-
-  var destinoIdx = -1;
-  var epocaIdx = -1;
-  var estiloIdx = -1;
-
   var inputDestino = document.getElementById('input-destino');
   var inputEpoca = document.getElementById('input-epoca');
   var inputEstilo = document.getElementById('input-estilo');
@@ -1920,10 +2149,10 @@
   var summaryDuracao = document.getElementById('summary-duracao');
 
   function updateSummaryPanel() {
-    if (summaryDestino && inputDestino) summaryDestino.textContent = inputDestino.value;
-    if (summaryEpoca && inputEpoca) summaryEpoca.textContent = inputEpoca.value;
-    if (summaryEstilo && inputEstilo) summaryEstilo.textContent = inputEstilo.value;
-    if (summaryDuracao && inputDuracao) summaryDuracao.textContent = inputDuracao.value;
+    if (summaryDestino && inputDestino) summaryDestino.textContent = inputDestino.value || 'Personalizado';
+    if (summaryEpoca && inputEpoca) summaryEpoca.textContent = inputEpoca.value || 'Livre';
+    if (summaryEstilo && inputEstilo) summaryEstilo.textContent = inputEstilo.value || 'Sob Medida';
+    if (summaryDuracao && inputDuracao) summaryDuracao.textContent = inputDuracao.value || 'A definir';
   }
 
   function selectRoute(routeKey, scrollIntoView) {
@@ -1997,56 +2226,11 @@
     }
   }
 
-  var heroBtnDestino = document.getElementById('hero-btn-destino');
-  var heroLabelDestino = document.getElementById('hero-label-destino');
-  if (heroBtnDestino && heroLabelDestino) {
-    heroBtnDestino.addEventListener('click', function () {
-      destinoIdx = (destinoIdx + 1) % DESTINO_OPTIONS.length;
-      var chosen = DESTINO_OPTIONS[destinoIdx];
-      heroLabelDestino.textContent = chosen;
-      if (inputDestino && chosen.indexOf('Caruaru') === -1) inputDestino.value = chosen;
-      updateSummaryPanel();
-    });
-  }
-
-  var heroBtnEpoca = document.getElementById('hero-btn-epoca');
-  var heroLabelEpoca = document.getElementById('hero-label-epoca');
-  if (heroBtnEpoca && heroLabelEpoca) {
-    heroBtnEpoca.addEventListener('click', function () {
-      epocaIdx = (epocaIdx + 1) % EPOCA_OPTIONS.length;
-      var chosen = EPOCA_OPTIONS[epocaIdx];
-      heroLabelEpoca.textContent = chosen;
-      if (inputEpoca) inputEpoca.value = chosen;
-      updateSummaryPanel();
-    });
-  }
-
-  var heroBtnEstilo = document.getElementById('hero-btn-estilo');
-  var heroLabelEstilo = document.getElementById('hero-label-estilo');
-  if (heroBtnEstilo && heroLabelEstilo) {
-    heroBtnEstilo.addEventListener('click', function () {
-      estiloIdx = (estiloIdx + 1) % ESTILO_OPTIONS.length;
-      var chosen = ESTILO_OPTIONS[estiloIdx];
-      heroLabelEstilo.textContent = chosen;
-      if (inputEstilo && chosen !== 'Cultura & Gastronomia') inputEstilo.value = chosen;
-      updateSummaryPanel();
-    });
-  }
-
   var heroSubmit = document.getElementById('hero-search-submit');
   if (heroSubmit) {
     heroSubmit.addEventListener('click', function () {
-      var labelVal = heroLabelDestino ? heroLabelDestino.textContent : '';
-      if (labelVal.indexOf('Caruaru') !== -1) {
-        openSubpage('brasil', 'sao-joao-de-caruaru-festa-junina-guia-dicas', true);
-      } else if (labelVal.indexOf('Noruega') !== -1) {
-        openSubpage('noruega', 'fiordes-da-noruega-lofoten-guia-dicas', true);
-      } else if (labelVal.indexOf('Amalfitana') !== -1) {
-        openSubpage('italia', 'costa-amalfitana-capri-roteiro-completo', true);
-      } else {
-        var pubSec = document.getElementById('publicacoes');
-        if (pubSec) pubSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      var qVal = heroSearchInput ? heroSearchInput.value : '';
+      applyFreeSearchQuery(qVal, true);
     });
   }
 
@@ -2084,8 +2268,59 @@
   });
 
   [inputDestino, inputEpoca, inputEstilo, inputDuracao].forEach(function (el) {
-    if (el) el.addEventListener('change', updateSummaryPanel);
+    if (el) {
+      el.addEventListener('change', updateSummaryPanel);
+      el.addEventListener('input', updateSummaryPanel);
+    }
   });
+
+  /* Institutional & Legal Modal (Sobre Nós, Política de Privacidade, Termos de Uso) */
+  var institutionalModal = document.getElementById('institutional-modal');
+  var btnCloseInstitutional = document.getElementById('btn-close-institutional-modal');
+
+  function openInstitutionalModal(tabKey) {
+    if (!institutionalModal) return;
+    var activeKey = tabKey || 'sobre';
+    institutionalModal.hidden = false;
+
+    document.querySelectorAll('[data-institutional-tab]').forEach(function (btn) {
+      btn.classList.toggle('is-active', btn.getAttribute('data-institutional-tab') === activeKey);
+    });
+
+    var paneSobre = document.getElementById('institutional-pane-sobre');
+    var panePriv = document.getElementById('institutional-pane-privacidade');
+    var paneTermos = document.getElementById('institutional-pane-termos');
+    if (paneSobre) paneSobre.hidden = activeKey !== 'sobre';
+    if (panePriv) panePriv.hidden = activeKey !== 'privacidade';
+    if (paneTermos) paneTermos.hidden = activeKey !== 'termos';
+  }
+
+  function closeInstitutionalModal() {
+    if (institutionalModal) institutionalModal.hidden = true;
+  }
+
+  document.querySelectorAll('[data-open-institutional]').forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      openInstitutionalModal(link.getAttribute('data-open-institutional'));
+    });
+  });
+
+  document.querySelectorAll('[data-institutional-tab]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      openInstitutionalModal(btn.getAttribute('data-institutional-tab'));
+    });
+  });
+
+  if (btnCloseInstitutional) {
+    btnCloseInstitutional.addEventListener('click', closeInstitutionalModal);
+  }
+
+  if (institutionalModal) {
+    institutionalModal.addEventListener('click', function (e) {
+      if (e.target === institutionalModal) closeInstitutionalModal();
+    });
+  }
 
   var form = document.getElementById('bespoke-planner-form');
   var statusEl = document.getElementById('planner-status');
@@ -2117,8 +2352,77 @@
   }
 
   /* ==========================================================================
-     12. BOOTSTRAP ON LOAD
+     12. COOKIE CONSENT POPUP (ACCEPT / DECLINE CLAUSE) & BOOTSTRAP
      ========================================================================== */
+  var cookiePopup = document.getElementById('cookie-consent-popup');
+  var btnCookieAccept = document.getElementById('btn-cookie-accept');
+  var btnCookieDecline = document.getElementById('btn-cookie-decline');
+  var btnToggleCookieClause = document.getElementById('btn-toggle-cookie-clause');
+  var cookieClauseDetails = document.getElementById('cookie-clause-details');
+  var btnOpenCookiePopup = document.getElementById('btn-open-cookie-popup');
+
+  function getStoredCookieConsent() {
+    try {
+      var saved = localStorage.getItem(STORAGE_COOKIE_CONSENT_KEY) || sessionStorage.getItem(STORAGE_COOKIE_CONSENT_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return null;
+  }
+
+  function recordCookieConsent(decision) {
+    var payload = JSON.stringify({
+      decision: decision,
+      updatedAt: new Date().toISOString()
+    });
+    try {
+      if (decision === 'accepted') {
+        localStorage.setItem(STORAGE_COOKIE_CONSENT_KEY, payload);
+        sessionStorage.removeItem(STORAGE_COOKIE_CONSENT_KEY);
+      } else {
+        sessionStorage.setItem(STORAGE_COOKIE_CONSENT_KEY, payload);
+        localStorage.removeItem(STORAGE_COOKIE_CONSENT_KEY);
+        var rememberLoginCheckbox = document.getElementById('login-remember');
+        var rememberRegisterCheckbox = document.getElementById('register-remember');
+        if (rememberLoginCheckbox) rememberLoginCheckbox.checked = false;
+        if (rememberRegisterCheckbox) rememberRegisterCheckbox.checked = false;
+      }
+    } catch (e) {}
+    if (cookiePopup) cookiePopup.hidden = true;
+  }
+
+  if (btnCookieAccept) {
+    btnCookieAccept.addEventListener('click', function () {
+      recordCookieConsent('accepted');
+    });
+  }
+
+  if (btnCookieDecline) {
+    btnCookieDecline.addEventListener('click', function () {
+      recordCookieConsent('declined');
+    });
+  }
+
+  if (btnToggleCookieClause && cookieClauseDetails) {
+    btnToggleCookieClause.addEventListener('click', function () {
+      var isHidden = cookieClauseDetails.hidden;
+      cookieClauseDetails.hidden = !isHidden;
+      btnToggleCookieClause.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+      btnToggleCookieClause.textContent = isHidden ? 'Ocultar cláusula completa' : 'Ler cláusula completa';
+    });
+  }
+
+  if (btnOpenCookiePopup && cookiePopup) {
+    btnOpenCookiePopup.addEventListener('click', function () {
+      cookiePopup.hidden = false;
+    });
+  }
+
+  var existingConsent = getStoredCookieConsent();
+  var isAutomatedCapture = !!(window.navigator && window.navigator.webdriver);
+  if (!existingConsent && !isAutomatedCapture && cookiePopup) {
+    cookiePopup.hidden = false;
+  }
+
   var initialPosts = loadLocalPosts();
   syncCategoryFilterPills(initialPosts);
   updateLiveUrlPreview();
