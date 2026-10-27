@@ -104,13 +104,11 @@
     <figure class="r-hero-ocean-photo" data-region="hero-ocean-photo">
       <!-- Start EasyHtml5Video.com BODY section -->
       <div class="easyhtml5video hero-video-container">
-        <video id="hero-ocean-video" class="hero-ocean-video" autoplay="autoplay" muted="muted" playsinline="playsinline" preload="auto" loop="loop" disablepictureinpicture="true" disableremoteplayback="true" controlslist="nodownload nofullscreen noremoteplayback nopictureinpicture" oncontextmenu="return false;" tabindex="-1" aria-hidden="true" poster="eh5v.files/html5video/14273213_1080_1920_60fps.jpg">
+        <video id="hero-ocean-video" class="hero-ocean-video" autoplay="autoplay" muted="muted" playsinline="playsinline" preload="auto" loop="loop" disablepictureinpicture="true" disableremoteplayback="true" controlslist="nodownload nofullscreen noremoteplayback nopictureinpicture" oncontextmenu="return false;" tabindex="-1" aria-hidden="true" poster="eh5v.files/html5video/14273213_1080_1920_60fps.jpg" src="eh5v.files/html5video/14273213_1080_1920_60fps.mp4">
           <source src="eh5v.files/html5video/14273213_1080_1920_60fps.mp4" type="video/mp4" />
-          <source src="eh5v.files/html5video/14273213_1080_1920_60fps.m4v" type="video/mp4" />
-          <source src="eh5v.files/html5video/14273213_1080_1920_60fps.webm" type="video/webm" />
-          <source src="https://videos.pexels.com/video-files/33575048/14273213_1080_1920_60fps.mp4" type="video/mp4" />
           <img alt="14273213_1080_1920_60fps-converted" src="eh5v.files/html5video/14273213_1080_1920_60fps.jpg" width="100%" title="Video playback is not supported by your browser" />
         </video>
+        <div class="hero-video-shield" aria-hidden="true" oncontextmenu="return false;"></div>
         <div class="eh5v_script"><a href="http://easyhtml5video.com">mp4 video converter</a> by EasyHtml5Video.com v4.0</div>
       </div>
       <!-- End EasyHtml5Video.com BODY section -->
@@ -945,7 +943,7 @@ create policy "Acesso roteiros solicitados" on public.route_requests for all usi
             </div>
 
             <div class="planner-submit-row">
-              <button type="submit" class="btn-primary-blue">Solicitar Proposta de Roteiro</button>
+              <button type="submit" class="btn-primary-blue" id="btn-submit-planner">Solicitar Proposta de Roteiro</button>
               <span class="form-status-msg" id="planner-status" role="status" aria-live="polite"></span>
             </div>
           </form>
