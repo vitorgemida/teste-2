@@ -27,7 +27,7 @@
   src: url('assets/fonts/dancing-script-bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
 }
 
 @font-face {
@@ -35,7 +35,7 @@
   src: url('assets/fonts/satisfy-regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
 }
 
 :root {
@@ -156,12 +156,12 @@ a {
   height: var(--r-brand-logo-h);
   display: inline-flex;
   align-items: center;
-  gap: calc(8 * var(--u));
-  font-family: 'Dancing Script', 'Satisfy', 'Segoe Script', 'Brush Script MT', cursive;
+  gap: calc(7 * var(--u));
+  font-family: 'Dancing Script', 'Satisfy', cursive;
   font-size: calc(31 * var(--u));
   font-weight: 700;
-  color: #0f152d;
-  letter-spacing: 0em;
+  color: var(--ink-primary);
+  letter-spacing: 0.01em;
   text-decoration: none;
   line-height: 1;
   white-space: nowrap;
@@ -188,8 +188,8 @@ a {
 
 .brand-airplane-svg {
   display: block;
-  width: calc(32 * var(--u));
-  height: calc(26 * var(--u));
+  width: calc(28 * var(--u));
+  height: calc(22 * var(--u));
   overflow: visible;
 }
 
@@ -1485,7 +1485,7 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Dancing Script', 'Satisfy', 'Segoe Script', 'Brush Script MT', cursive;
+  font-family: 'Dancing Script', 'Satisfy', cursive;
   font-size: 24px;
   font-weight: 700;
   color: var(--ink-primary);
@@ -1498,8 +1498,8 @@ a {
 
 .footer-brand .brand-airplane-svg {
   display: block;
-  width: 26px;
-  height: 20px;
+  width: clamp(24px, calc(26 * var(--u)), 28px);
+  height: clamp(19px, calc(20 * var(--u)), 22px);
   overflow: visible;
 }
 
@@ -2033,7 +2033,7 @@ body.is-subpage-active #conta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Dancing Script', 'Satisfy', 'Segoe Script', 'Brush Script MT', cursive;
+  font-family: 'Dancing Script', 'Satisfy', cursive;
   font-size: 26px;
   font-weight: 700;
   color: var(--ink-primary);
@@ -2057,8 +2057,8 @@ body.is-subpage-active #conta {
 
 .subpage-brand-logo .brand-airplane-svg {
   display: block;
-  width: 28px;
-  height: 22px;
+  width: clamp(24px, calc(26 * var(--u)), 28px);
+  height: clamp(19px, calc(20 * var(--u)), 22px);
   overflow: visible;
 }
 
@@ -3552,674 +3552,25 @@ body.is-subpage-active #conta {
 
   /* Top bar: Brand Logo left, CTA button right */
   .r-brand-logo {
-    grid-column: 2 / 5;
-    grid-row: 1;
-    align-self: center;
-    font-family: 'Dancing Script', 'Satisfy', 'Segoe Script', 'Brush Script MT', cursive;
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: 0.01em;
-    color: var(--ink-primary);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .r-brand-logo .brand-airplane-svg {
-    width: 26px;
-    height: 20px;
-  }
-
-  .r-nav-cta {
-    grid-column: 5 / 8;
-    grid-row: 1;
-    justify-self: end;
-    align-self: center;
-    padding: 9px 18px;
-    font-size: 13.5px;
-    font-weight: 600;
-    border-radius: 999px;
-    background: #2563eb;
-    color: #ffffff;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
-    transition: background-color 160ms var(--ease-out-expo), transform 160ms var(--ease-out-expo);
-  }
-
-  .r-nav-cta:hover {
-    background: #1d4ed8;
-    transform: translateY(-1px);
-  }
-
-  /* Nav links in a sleek horizontal track */
-  .r-nav-destinos,
-  .r-nav-roteiros,
-  .r-nav-experiencias {
-    grid-row: 2;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 4px 4px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #4b5563;
-    white-space: nowrap;
-    transition: color 140ms var(--ease-out-expo);
-  }
-
-  .r-nav-destinos:hover,
-  .r-nav-roteiros:hover,
-  .r-nav-experiencias:hover {
-    color: var(--accent-blue);
-  }
-
-  .r-nav-destinos { grid-column: 2 / 4; justify-self: start; }
-  .r-nav-roteiros { grid-column: 4 / 6; justify-self: center; }
-  .r-nav-experiencias { grid-column: 6 / 8; justify-self: end; }
-
-  /* Hero Video / Ocean Backdrop */
-  .r-hero-ocean-photo {
-    grid-column: 1 / -1;
-    grid-row: 3 / 10;
-    margin: 0 8px;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 16px 36px rgba(8, 35, 62, 0.2);
-  }
-
-  .r-hero-ocean-photo::after {
-    background: linear-gradient(180deg, rgba(8, 35, 62, 0.44) 0%, rgba(8, 35, 62, 0.22) 55%, rgba(8, 35, 62, 0.40) 100%);
-  }
-
-  .r-hero-ocean-photo .easyhtml5video,
-  .r-hero-ocean-photo .hero-video-container {
-    position: absolute;
-    inset: 0;
-    pointer-events: none !important;
-  }
-
-  .r-hero-ocean-photo video,
-  .r-hero-ocean-photo .hero-ocean-video,
-  .r-hero-ocean-photo > img {
-    position: absolute;
-    inset: 0;
-    pointer-events: none !important;
-  }
-
-  /* Hero Headline & Subheadline */
-  .r-hero-title {
-    grid-column: 2 / 8;
-    grid-row: 4;
-    font-size: clamp(26px, 7.4vw, 38px);
-    font-weight: 700;
-    line-height: 1.1;
-    letter-spacing: -0.025em;
-    color: #f8fafc;
-    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.42);
-    text-align: center;
-  }
-
-  .r-hero-title span {
-    display: block;
-    white-space: normal;
-  }
-
-  .r-hero-subtitle {
-    grid-column: 2 / 8;
-    grid-row: 5;
-    margin-top: 8px;
-    padding: 0 8px;
-    font-size: 14.5px;
-    line-height: 1.45;
-    color: #e0f2fe;
-    text-align: center;
-    white-space: normal;
-    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
-  }
-
-  /* Search bar: white pill with input + dark button inside, over video */
-  .r-search-bar-shell {
-    display: block;
-    grid-column: 2 / 8;
-    grid-row: 7;
-    background: #ffffff;
-    border: 4px solid rgba(255, 255, 255, 0.48);
-    border-radius: 999px;
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
-  }
-
-  .r-search-field-destino,
-  .r-search-field-destino.r-search-free-wrap {
-    grid-column: 2 / 8;
-    grid-row: 7;
-    width: auto;
-    padding: 0 116px 0 14px;
-    gap: 8px;
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    font-size: 15px;
-  }
-
-  .r-search-field-destino svg {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-    stroke: #64748b;
-  }
-
-  .hero-free-search-input {
-    min-width: 0;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--ink-primary);
-  }
-
-  .hero-search-hint-tag {
-    display: none;
-  }
-
-  .r-search-submit-btn {
-    grid-column: 2 / 8;
-    grid-row: 7;
-    justify-self: end;
-    align-self: center;
-    height: 40px;
-    margin-right: 6px;
-    padding: 0 16px;
-    font-size: 13.5px;
-    font-weight: 600;
-    border-radius: 999px;
-    background: #091e30;
-    color: #ffffff;
-    box-shadow: 0 3px 10px rgba(9, 30, 48, 0.25);
-  }
-
-  .r-search-submit-btn:hover {
-    background: #14324f;
-  }
-
-  .hero-search-results-dropdown {
-    position: absolute;
-    left: 10px;
-    right: 10px;
-    top: calc(100% + 10px);
-    z-index: 100;
-    width: auto;
-    max-height: min(460px, 68vh);
-    margin: 0;
-    padding: 16px;
-    border-radius: 20px;
-    background: #ffffff;
-    border: 1px solid var(--border-subtle);
-    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.25);
-  }
-
-  .hero-search-result-card {
-    gap: 12px;
-    padding: 12px;
-    border-radius: 14px;
-  }
-
-  .hero-search-result-thumb {
-    width: 72px;
-    height: 56px;
-    border-radius: 10px;
-  }
-
-  .hero-search-result-cta {
-    display: none;
-  }
-
-  /* Three destination cards overlapping the bottom of the video */
-  .r-card-1-frame,
-  .r-card-2-frame,
-  .r-card-3-frame {
-    display: block;
-    grid-row: 9 / 11;
-    border: 3.5px solid rgba(255, 255, 255, 0.96);
-    border-bottom: none;
-    border-radius: 14px 14px 0 0;
-    background: #ffffff;
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
-    z-index: 2;
-  }
-
-  .r-card-1-frame,
-  .r-card-1-photo,
-  .r-card-1-title { grid-column: 2 / 4; }
-
-  .r-card-2-frame,
-  .r-card-2-photo,
-  .r-card-2-title { grid-column: 4 / 6; }
-
-  .r-card-3-frame,
-  .r-card-3-photo,
-  .r-card-3-title { grid-column: 6 / 8; }
-
-  .r-card-1-frame,
-  .r-card-1-photo,
-  .r-card-1-title { margin-right: 4px; }
-
-  .r-card-2-frame,
-  .r-card-2-photo,
-  .r-card-2-title { margin-left: 2px; margin-right: 2px; }
-
-  .r-card-3-frame,
-  .r-card-3-photo,
-  .r-card-3-title { margin-left: 4px; }
-
-  .r-card-1-photo,
-  .r-card-2-photo,
-  .r-card-3-photo {
-    grid-row: 9 / 11;
-    margin-top: 3.5px;
-    border-radius: 10px 10px 0 0;
-    overflow: hidden;
-    z-index: 3;
-    cursor: pointer;
-  }
-
-  .r-card-1-photo { margin-left: 3.5px; margin-right: 7.5px; }
-  .r-card-2-photo { margin-left: 5.5px; margin-right: 5.5px; }
-  .r-card-3-photo { margin-left: 7.5px; margin-right: 3.5px; }
-
-  .r-card-1-photo::after,
-  .r-card-2-photo::after,
-  .r-card-3-photo::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, transparent 20%, rgba(8, 25, 45, 0.84) 100%);
-    pointer-events: none;
-  }
-
-  .r-card-1-title,
-  .r-card-2-title,
-  .r-card-3-title {
-    grid-row: 9 / 11;
-    align-self: end;
-    justify-content: flex-end;
-    padding: 0 6px 8px 8px;
-    font-size: clamp(11.5px, 3.2vw, 14px);
-    font-weight: 700;
-    line-height: 1.15;
-    letter-spacing: -0.01em;
-    color: #f8fafc;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    z-index: 4;
-  }
-
-  /* ------------------------------------------------------------------
-     2. DESTINATION CONTINUATION PANELS
-     ------------------------------------------------------------------ */
-  .destinations-continuation {
-    padding: 0 12px 48px;
-  }
-
-  .destinations-captions-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 14px 0 0;
-    overflow: visible;
-  }
-
-  .destination-meta-panel {
-    border-radius: 18px;
-    border: 1px solid var(--border-subtle);
-    background: #ffffff;
-    padding: 20px 20px 18px;
-    box-shadow: 0 4px 18px rgba(8, 35, 62, 0.05);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .destination-meta-panel p {
-    font-size: 14.5px;
-    line-height: 1.55;
-    color: var(--ink-secondary);
-    margin: 0;
-  }
-
-  .destination-telemetry-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-subtle);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink-primary);
-  }
-
-  .destination-select-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 11px 20px;
-    border-radius: 999px;
-    background: #f1f5f9;
-    color: var(--ink-primary);
-    font-size: 13.5px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: background-color 160ms var(--ease-out-expo);
-  }
-
-  .destination-select-btn:hover {
-    background: var(--accent-blue);
-    color: #ffffff;
-  }
-
-  /* ------------------------------------------------------------------
-     3. ACCOUNT BAR (#conta)
-     ------------------------------------------------------------------ */
-  .account-bar-inner {
-    padding: 20px 18px;
-    border-radius: 20px;
-    background: #0c192c;
-    border: 1px solid #1e3a5f;
-    box-shadow: 0 8px 24px rgba(8, 35, 62, 0.15);
-  }
-
-  .account-greeting-wrap {
-    gap: 12px;
-  }
-
-  .cloud-status-dot {
-    width: 10px;
-    height: 10px;
-    margin-top: 4px;
-  }
-
-  #user-greeting-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #ffffff;
-  }
-
-  #user-greeting-sub {
-    font-size: 13px;
-    color: #94a3b8;
-    line-height: 1.45;
-  }
-
-  .account-actions-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 14px;
-    width: 100%;
-  }
-
-  .btn-account-solid,
-  .btn-account-outline {
-    flex: 1 1 calc(50% - 10px);
-    text-align: center;
-    padding: 10px 16px;
-    font-size: 13.5px;
-    border-radius: 999px;
-    justify-content: center;
-  }
-
-  /* ------------------------------------------------------------------
-     4. PUBLICAÇÕES SECTION (#publicacoes)
-     ------------------------------------------------------------------ */
-  .section-container {
-    padding: 56px 14px;
-  }
-
-  .posts-section-header h2 {
-    font-size: clamp(26px, 6.8vw, 36px);
-    letter-spacing: -0.02em;
-    line-height: 1.15;
-  }
-
-  .posts-section-header p {
-    font-size: 15px;
-    line-height: 1.55;
-    max-width: none;
-  }
-
-  .posts-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 14px;
-    padding: 16px;
-    border-radius: 18px;
-    background: #ffffff;
-    border: 1px solid var(--border-subtle);
-  }
-
-  .posts-category-filters {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .posts-category-filters::-webkit-scrollbar {
-    display: none;
-  }
-
-  .category-filter-pill {
-    flex-shrink: 0;
-    padding: 7px 14px;
-    font-size: 13px;
-    border-radius: 999px;
-    white-space: nowrap;
-  }
-
-  .posts-search-box {
-    width: 100%;
-  }
-
-  .posts-search-box input {
-    width: 100%;
-    height: 44px;
-    font-size: 14.5px;
-    border-radius: 12px;
-  }
-
-  .posts-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .post-card {
-    border-radius: 20px;
-    overflow: hidden;
-    background: #ffffff;
-    border: 1px solid var(--border-subtle);
-    box-shadow: 0 6px 20px rgba(8, 35, 62, 0.05);
-  }
-
-  .post-card-title {
-    font-size: 18px;
-    line-height: 1.3;
-  }
-
-  /* ------------------------------------------------------------------
-     5. ITINERÁRIOS & CORREDORES OCEÂNICOS (#roteiros)
-     ------------------------------------------------------------------ */
-  .itinerary-workbench {
-    grid-template-columns: 1fr;
-    padding: 22px 18px;
-    gap: 26px;
-    border-radius: 22px;
-  }
-
-  .route-tabs-nav {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding: 2px 0 10px;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .route-tabs-nav::-webkit-scrollbar {
-    display: none;
-  }
-
-  .route-tab-btn {
-    flex-shrink: 0;
-    padding: 9px 18px;
-    font-size: 13px;
-    border-radius: 999px;
-    white-space: nowrap;
-  }
-
-  .itinerary-specs-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    padding: 16px;
-    background: #f8fafc;
-    border-radius: 16px;
-  }
-
-  .stage-row {
-    padding: 16px;
-    border-radius: 14px;
-  }
-
-  /* ------------------------------------------------------------------
-     6. CALENDÁRIO OCEÂNICO (#experiencias)
-     ------------------------------------------------------------------ */
-  .seasonal-calendar-wrap {
-    border-radius: 18px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .seasonal-table th,
-  .seasonal-table td {
-    padding: 14px 16px;
-    font-size: 13.5px;
-  }
-
-  /* ------------------------------------------------------------------
-     7. PLANEJADOR SOB MEDIDA (#planejar)
-     ------------------------------------------------------------------ */
-  .planner-layout {
-    grid-template-columns: 1fr;
-    padding: 24px 18px;
-    gap: 28px;
-    border-radius: 22px;
-  }
-
-  .planner-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .form-field input,
-  .form-field select,
-  .form-field textarea {
-    height: 48px;
-    border-radius: 12px;
-    font-size: 15px;
-  }
-
-  .planner-summary-panel {
-    padding: 24px 20px;
-    border-radius: 18px;
-    background: #0c192c;
-    border: 1px solid #1e3a5f;
-  }
-
-  .planner-auth-gate {
-    padding: 18px 16px;
-    border-radius: 16px;
-  }
-
-  .planner-logged-banner {
-    padding: 14px 16px;
-    border-radius: 14px;
-    flex-wrap: wrap;
-  }
-
-  .planner-auth-gate-buttons {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .planner-auth-gate-buttons .btn-gate-action {
-    width: 100%;
-    text-align: center;
-  }
-
-  .admin-tab-title-row {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  /* ------------------------------------------------------------------
-     8. DEDICATED SUBPAGE VIEW (#subpage-view) & ADMIN
-     ------------------------------------------------------------------ */
-  .subpage-dedicated-masthead {
-    padding: 14px 16px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .subpage-masthead-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .subpage-inner {
-    padding: 24px 16px 48px;
-  }
-
-  .subpage-cover-figure {
-    height: 220px;
-    border-radius: 16px;
-  }
-
-  .subpage-headline-wrap h1 {
-    font-size: clamp(24px, 6.5vw, 34px);
-    line-height: 1.2;
-  }
-
-  .subpage-body-grid,
-  .admin-form-grid {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
-
-  .subpage-facts-card,
-  .admin-panel-shell {
-    padding: 20px 18px;
-    border-radius: 18px;
-  }
-
-  /* ------------------------------------------------------------------
-     9. MODALS & POPUPS (COOKIE, AUTH, INSTITUTIONAL)
-     ------------------------------------------------------------------ */
-  .auth-modal-content,
-  .institutional-modal-content {
-    width: calc(100% - 24px);
-    max-height: 88vh;
-    padding: 24px 18px;
-    border-radius: 22px;
-  }
-
-  .cookie-consent-popup {
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
-    border-radius: 18px;
-    padding: 18px;
-  }
+  position: absolute;
+  left: var(--r-brand-logo-x);
+  top: var(--r-brand-logo-y);
+  width: auto;
+  min-width: var(--r-brand-logo-w);
+  height: var(--r-brand-logo-h);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Dancing Script', 'Satisfy', cursive;
+  font-size: clamp(24px, calc(26 * var(--u)), 28px);
+  font-weight: 700;
+  color: var(--ink-primary);
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  line-height: 1;
+  white-space: nowrap;
+  z-index: 5;
+  transition: opacity 0.2s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
