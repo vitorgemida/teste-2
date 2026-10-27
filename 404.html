@@ -118,13 +118,11 @@
     <figure class="r-hero-ocean-photo" data-region="hero-ocean-photo">
       <!-- Start EasyHtml5Video.com BODY section -->
       <div class="easyhtml5video hero-video-container">
-        <video id="hero-ocean-video" class="hero-ocean-video" autoplay="autoplay" muted="muted" playsinline="playsinline" preload="auto" loop="loop" disablepictureinpicture="true" disableremoteplayback="true" controlslist="nodownload nofullscreen noremoteplayback nopictureinpicture" oncontextmenu="return false;" tabindex="-1" aria-hidden="true" poster="eh5v.files/html5video/14273213_1080_1920_60fps.jpg">
+        <video id="hero-ocean-video" class="hero-ocean-video" autoplay="autoplay" muted="muted" playsinline="playsinline" preload="auto" loop="loop" disablepictureinpicture="true" disableremoteplayback="true" controlslist="nodownload nofullscreen noremoteplayback nopictureinpicture" oncontextmenu="return false;" tabindex="-1" aria-hidden="true" poster="eh5v.files/html5video/14273213_1080_1920_60fps.jpg" src="eh5v.files/html5video/14273213_1080_1920_60fps.mp4">
           <source src="eh5v.files/html5video/14273213_1080_1920_60fps.mp4" type="video/mp4" />
-          <source src="eh5v.files/html5video/14273213_1080_1920_60fps.m4v" type="video/mp4" />
-          <source src="eh5v.files/html5video/14273213_1080_1920_60fps.webm" type="video/webm" />
-          <source src="https://videos.pexels.com/video-files/33575048/14273213_1080_1920_60fps.mp4" type="video/mp4" />
           <img alt="14273213_1080_1920_60fps-converted" src="eh5v.files/html5video/14273213_1080_1920_60fps.jpg" width="100%" title="Video playback is not supported by your browser" />
         </video>
+        <div class="hero-video-shield" aria-hidden="true" oncontextmenu="return false;"></div>
         <div class="eh5v_script"><a href="http://easyhtml5video.com">mp4 video converter</a> by EasyHtml5Video.com v4.0</div>
       </div>
       <!-- End EasyHtml5Video.com BODY section -->
@@ -422,6 +420,7 @@
           </div>
           <div class="admin-tabs-nav" role="tablist">
             <button type="button" class="admin-tab-btn is-active" data-admin-tab="editor">Editor de Postagens</button>
+            <button type="button" class="admin-tab-btn" data-admin-tab="requests">Roteiros Solicitados <span class="admin-tab-counter" id="admin-req-tab-counter" hidden>0</span></button>
             <button type="button" class="admin-tab-btn" data-admin-tab="accounts">Contas Registradas</button>
             <button type="button" class="admin-tab-btn" data-admin-tab="cloud">Banco em Nuvem (Firebase / Supabase)</button>
           </div>
@@ -554,7 +553,40 @@
           </div>
         </div>
 
-        <!-- TAB 2: ACCOUNTS MANAGEMENT -->
+        <!-- TAB 2: REQUESTED ITINERARIES -->
+        <div class="admin-tab-pane" id="admin-tab-requests" hidden>
+          <div class="admin-tab-title-row">
+            <div>
+              <h3>Roteiros Solicitados pelos Viajantes</h3>
+              <p class="admin-subtext">Briefings e solicitações de travessias sob medida enviados pelos viajantes cadastrados através do formulário de planejamento.</p>
+            </div>
+            <div class="admin-requests-summary-pills">
+              <span class="req-stat-pill" id="stat-req-total">Total: <strong>0</strong></span>
+              <span class="req-stat-pill pill-amber" id="stat-req-pending">Pendentes: <strong>0</strong></span>
+              <span class="req-stat-pill pill-blue" id="stat-req-analyzing">Em Análise: <strong>0</strong></span>
+              <span class="req-stat-pill pill-emerald" id="stat-req-done">Atendidos: <strong>0</strong></span>
+            </div>
+          </div>
+
+          <div class="admin-posts-table-wrap">
+            <table class="seasonal-table admin-table admin-requests-table">
+              <thead>
+                <tr>
+                  <th scope="col">Data / Hora</th>
+                  <th scope="col">Viajante</th>
+                  <th scope="col">Destino Solicitado</th>
+                  <th scope="col">Época &amp; Duração</th>
+                  <th scope="col">Estilo de Viagem</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="admin-requests-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 3: ACCOUNTS MANAGEMENT -->
         <div class="admin-tab-pane" id="admin-tab-accounts" hidden>
           <h3>Contas de Usuários e Administradores</h3>
           <p class="admin-subtext">Gerencie os usuários cadastrados. Você pode conceder ou remover permissão de Administrador para qualquer conta registrada.</p>
@@ -668,7 +700,23 @@ create table if not exists public.comments (
 );
 alter table public.comments enable row level security;
 drop policy if exists "Acesso comentarios" on public.comments;
-create policy "Acesso comentarios" on public.comments for all using (true) with check (true);</code></pre>
+create policy "Acesso comentarios" on public.comments for all using (true) with check (true);
+
+create table if not exists public.route_requests (
+  id text primary key,
+  traveler_id text,
+  traveler_name text not null,
+  traveler_email text not null,
+  destino text not null,
+  epoca text,
+  estilo text,
+  duracao text,
+  status text default 'Pendente',
+  created_at timestamptz default now()
+);
+alter table public.route_requests enable row level security;
+drop policy if exists "Acesso roteiros solicitados" on public.route_requests;
+create policy "Acesso roteiros solicitados" on public.route_requests for all using (true) with check (true);</code></pre>
           </div>
         </div>
       </div>
@@ -823,6 +871,33 @@ create policy "Acesso comentarios" on public.comments for all using (true) with 
           <h2 id="heading-planejar">Planeje Sua Travessia Sob Medida</h2>
           <p>Configure os parâmetros iniciais da sua viagem. Nossos arquitetos de rota preparam um dossiê completo com opções de embarcação, pousadas costeiras e logística de acesso.</p>
 
+          <!-- Gate when visitor is not logged in -->
+          <div class="planner-auth-gate" id="planner-auth-gate">
+            <div class="planner-auth-gate-badge">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <span>Exclusivo para Viajantes com Conta</span>
+            </div>
+            <div class="planner-auth-gate-content">
+              <strong>Apenas pessoas com conta cadastrada conseguem solicitar um roteiro sob medida</strong>
+              <p>Conecte-se ou cadastre-se para que nossa curadoria vincule os parâmetros da sua viagem ao seu perfil e envie a proposta personalizada diretamente ao seu e-mail.</p>
+              <div class="planner-auth-gate-buttons">
+                <button type="button" class="btn-primary-blue btn-gate-action" id="btn-planner-login">Entrar na Minha Conta</button>
+                <button type="button" class="btn-account-outline btn-gate-action" id="btn-planner-register">Criar Conta Gratuita</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Logged-in traveler banner -->
+          <div class="planner-logged-banner" id="planner-logged-banner" hidden>
+            <div class="planner-logged-avatar" id="planner-logged-avatar">VA</div>
+            <div class="planner-logged-details">
+              <span>Viajante Autenticado</span>
+              <strong id="planner-logged-name">Viajante</strong>
+              <small id="planner-logged-email">viajante@exemplo.com</small>
+            </div>
+            <span class="planner-verified-tag">✓ Habilitado a Solicitar</span>
+          </div>
+
           <form id="bespoke-planner-form" novalidate>
             <div class="planner-grid">
               <div class="form-field">
@@ -882,7 +957,7 @@ create policy "Acesso comentarios" on public.comments for all using (true) with 
             </div>
 
             <div class="planner-submit-row">
-              <button type="submit" class="btn-primary-blue">Solicitar Proposta de Roteiro</button>
+              <button type="submit" class="btn-primary-blue" id="btn-submit-planner">Solicitar Proposta de Roteiro</button>
               <span class="form-status-msg" id="planner-status" role="status" aria-live="polite"></span>
             </div>
           </form>
