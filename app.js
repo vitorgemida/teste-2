@@ -229,6 +229,35 @@
   var STORAGE_COOKIE_CONSENT_KEY = 'vertice_azul_cookies_consent_v1';
   var STORAGE_COMMENTS_KEY = 'vertice_azul_comments_v1';
   var INTERNAL_COMMENTS_STORE_EMAIL = '__comments_store__@verticeazul.internal';
+  var STORAGE_ROUTE_REQUESTS_KEY = 'vertice_azul_route_requests_v1';
+  var INTERNAL_REQUESTS_STORE_EMAIL = '__requests_store__@verticeazul.internal';
+
+  var INITIAL_ROUTE_REQUESTS = [
+    {
+      id: 'req-init-1',
+      travelerId: 'usr-helena',
+      travelerName: 'Helena Vasconcelos',
+      travelerEmail: 'helena@verticeazul.com.br',
+      destino: 'Ilhas Gregas',
+      epoca: 'Maio a Junho',
+      estilo: 'Veleiro & Vilas Costeiras',
+      duracao: '8 a 9 dias',
+      status: 'Em Análise',
+      createdAt: '2026-10-25T14:30:00Z'
+    },
+    {
+      id: 'req-init-2',
+      travelerId: 'usr-marcos',
+      travelerName: 'Marcos Aurélio Silveira',
+      travelerEmail: 'marcos.viajante@gmail.com',
+      destino: 'Fiordes da Noruega',
+      epoca: 'Junho a Agosto',
+      estilo: 'Expedição Ártica & Cabanas',
+      duracao: '10 a 12 dias',
+      status: 'Pendente',
+      createdAt: '2026-10-26T09:15:00Z'
+    }
+  ];
 
   var INITIAL_COMMENTS = [
     {
@@ -597,6 +626,172 @@
             syncCommentsBundleFallbackToSupabase(localSeed);
           })
           .catch(function () {});
+      });
+  }
+
+  function loadLocalRouteRequests() {
+    try {
+      var raw = localStorage.getItem(STORAGE_ROUTE_REQUESTS_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {}
+    try {
+      localStorage.setItem(STORAGE_ROUTE_REQUESTS_KEY, JSON.stringify(INITIAL_ROUTE_REQUESTS));
+    } catch (e) {}
+    return INITIAL_ROUTE_REQUESTS.slice();
+  }
+
+  function saveLocalRouteRequests(reqList) {
+    try {
+      localStorage.setItem(STORAGE_ROUTE_REQUESTS_KEY, JSON.stringify(reqList || []));
+    } catch (e) {}
+  }
+
+  function syncRequestsBundleFallbackToSupabase(allReqs) {
+    var mode = getActiveCloudMode();
+    var cfg = getCloudSettings();
+    if (mode !== 'supabase') return Promise.resolve();
+    var url = cfg.supabase.url.replace(/\/$/, '') + '/rest/v1/accounts';
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': cfg.supabase.anonKey,
+        'Authorization': 'Bearer ' + cfg.supabase.anonKey,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({
+        id: 'sys-requests-store-v1',
+        name: 'ROUTE_REQUESTS_STORAGE',
+        email: INTERNAL_REQUESTS_STORE_EMAIL,
+        password_hash: JSON.stringify(allReqs || []),
+        role: 'system',
+        created_at: new Date().toISOString()
+      })
+    }).catch(function () {});
+  }
+
+  function syncRouteRequestToCloud(reqObj, allReqs) {
+    var mode = getActiveCloudMode();
+    var cfg = getCloudSettings();
+    if (mode === 'supabase') {
+      syncRequestsBundleFallbackToSupabase(allReqs || loadLocalRouteRequests());
+      var url = cfg.supabase.url.replace(/\/$/, '') + '/rest/v1/route_requests';
+      return fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': cfg.supabase.anonKey,
+          'Authorization': 'Bearer ' + cfg.supabase.anonKey,
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({
+          id: reqObj.id,
+          traveler_id: reqObj.travelerId || '',
+          traveler_name: reqObj.travelerName,
+          traveler_email: reqObj.travelerEmail,
+          destino: reqObj.destino,
+          epoca: reqObj.epoca || '',
+          estilo: reqObj.estilo || '',
+          duracao: reqObj.duracao || '',
+          status: reqObj.status || 'Pendente',
+          created_at: reqObj.createdAt || new Date().toISOString()
+        })
+      }).catch(function () {});
+    }
+    return Promise.resolve();
+  }
+
+  function deleteRouteRequestCloud(reqId, allReqs) {
+    var mode = getActiveCloudMode();
+    var cfg = getCloudSettings();
+    if (mode === 'supabase') {
+      syncRequestsBundleFallbackToSupabase(allReqs || loadLocalRouteRequests());
+      var url = cfg.supabase.url.replace(/\/$/, '') + '/rest/v1/route_requests?id=eq.' + encodeURIComponent(reqId);
+      return fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'apikey': cfg.supabase.anonKey,
+          'Authorization': 'Bearer ' + cfg.supabase.anonKey
+        }
+      }).catch(function () {});
+    }
+    return Promise.resolve();
+  }
+
+  function fetchRouteRequestsFromCloud(callback) {
+    var mode = getActiveCloudMode();
+    var cfg = getCloudSettings();
+    if (mode !== 'supabase') {
+      if (callback) callback(loadLocalRouteRequests());
+      return;
+    }
+
+    var url = cfg.supabase.url.replace(/\/$/, '') + '/rest/v1/route_requests?select=*&order=created_at.desc';
+    fetch(url, {
+      headers: {
+        'apikey': cfg.supabase.anonKey,
+        'Authorization': 'Bearer ' + cfg.supabase.anonKey
+      }
+    })
+      .then(function (r) {
+        if (r.ok) return r.json();
+        throw new Error('route_requests_table_unavailable');
+      })
+      .then(function (rows) {
+        if (Array.isArray(rows) && rows.length > 0) {
+          var mapped = rows.map(function (row) {
+            return {
+              id: row.id,
+              travelerId: row.traveler_id,
+              travelerName: row.traveler_name,
+              travelerEmail: row.traveler_email,
+              destino: row.destino,
+              epoca: row.epoca,
+              estilo: row.estilo,
+              duracao: row.duracao,
+              status: row.status || 'Pendente',
+              createdAt: row.created_at
+            };
+          });
+          saveLocalRouteRequests(mapped);
+          if (callback) callback(mapped);
+          return;
+        }
+        throw new Error('no_route_requests');
+      })
+      .catch(function () {
+        var fallbackUrl = cfg.supabase.url.replace(/\/$/, '') + '/rest/v1/accounts?email=eq.' + encodeURIComponent(INTERNAL_REQUESTS_STORE_EMAIL) + '&select=*';
+        fetch(fallbackUrl, {
+          headers: {
+            'apikey': cfg.supabase.anonKey,
+            'Authorization': 'Bearer ' + cfg.supabase.anonKey
+          }
+        })
+          .then(function (res) {
+            if (res.ok) return res.json();
+            throw new Error('fallback_unavailable');
+          })
+          .then(function (accounts) {
+            if (Array.isArray(accounts) && accounts.length > 0 && accounts[0].password_hash) {
+              try {
+                var stored = JSON.parse(accounts[0].password_hash);
+                if (Array.isArray(stored) && stored.length > 0) {
+                  saveLocalRouteRequests(stored);
+                  if (callback) callback(stored);
+                  return;
+                }
+              } catch (e) {}
+            }
+            var localSeed = loadLocalRouteRequests();
+            syncRequestsBundleFallbackToSupabase(localSeed);
+            if (callback) callback(localSeed);
+          })
+          .catch(function () {
+            if (callback) callback(loadLocalRouteRequests());
+          });
       });
   }
 
@@ -1104,6 +1299,41 @@
       if (btnNewPostCta) btnNewPostCta.hidden = !isAdmin;
       if (subpageAdminActions) subpageAdminActions.hidden = !isAdmin;
       if (!isAdmin && adminSection) adminSection.hidden = true;
+    }
+
+    var plannerAuthGate = document.getElementById('planner-auth-gate');
+    var plannerLoggedBanner = document.getElementById('planner-logged-banner');
+    var plannerLoggedName = document.getElementById('planner-logged-name');
+    var plannerLoggedEmail = document.getElementById('planner-logged-email');
+    var plannerLoggedAvatar = document.getElementById('planner-logged-avatar');
+    var inputNome = document.getElementById('input-nome');
+    var inputEmail = document.getElementById('input-email');
+
+    if (session && session.email) {
+      if (plannerAuthGate) plannerAuthGate.hidden = true;
+      if (plannerLoggedBanner) plannerLoggedBanner.hidden = false;
+      if (plannerLoggedName) plannerLoggedName.textContent = session.name;
+      if (plannerLoggedEmail) plannerLoggedEmail.textContent = session.email;
+      if (plannerLoggedAvatar) plannerLoggedAvatar.textContent = getInitialsFromName(session.name);
+      if (inputNome && (!inputNome.value || inputNome.getAttribute('data-autofilled') === 'true')) {
+        inputNome.value = session.name;
+        inputNome.setAttribute('data-autofilled', 'true');
+      }
+      if (inputEmail && (!inputEmail.value || inputEmail.getAttribute('data-autofilled') === 'true')) {
+        inputEmail.value = session.email;
+        inputEmail.setAttribute('data-autofilled', 'true');
+      }
+    } else {
+      if (plannerAuthGate) plannerAuthGate.hidden = false;
+      if (plannerLoggedBanner) plannerLoggedBanner.hidden = true;
+      if (inputNome && inputNome.getAttribute('data-autofilled') === 'true') {
+        inputNome.value = '';
+        inputNome.removeAttribute('data-autofilled');
+      }
+      if (inputEmail && inputEmail.getAttribute('data-autofilled') === 'true') {
+        inputEmail.value = '';
+        inputEmail.removeAttribute('data-autofilled');
+      }
     }
 
     renderPostsGrid();
@@ -2574,6 +2804,139 @@
         usersTbody.appendChild(tr);
       });
     }
+
+    var reqsTbody = document.getElementById('admin-requests-tbody');
+    var statTotal = document.getElementById('stat-req-total');
+    var statPending = document.getElementById('stat-req-pending');
+    var statAnalyzing = document.getElementById('stat-req-analyzing');
+    var statDone = document.getElementById('stat-req-done');
+    var tabCounter = document.getElementById('admin-req-tab-counter');
+
+    if (reqsTbody) {
+      reqsTbody.innerHTML = '';
+      var requests = loadLocalRouteRequests();
+      var pendingCount = 0;
+      var analyzingCount = 0;
+      var doneCount = 0;
+
+      requests.forEach(function (r) {
+        if (r.status === 'Atendido') doneCount++;
+        else if (r.status === 'Em Análise') analyzingCount++;
+        else pendingCount++;
+      });
+
+      if (statTotal) statTotal.innerHTML = 'Total: <strong>' + requests.length + '</strong>';
+      if (statPending) statPending.innerHTML = 'Pendentes: <strong>' + pendingCount + '</strong>';
+      if (statAnalyzing) statAnalyzing.innerHTML = 'Em Análise: <strong>' + analyzingCount + '</strong>';
+      if (statDone) statDone.innerHTML = 'Atendidos: <strong>' + doneCount + '</strong>';
+      if (tabCounter) {
+        if (pendingCount > 0) {
+          tabCounter.textContent = pendingCount;
+          tabCounter.hidden = false;
+        } else {
+          tabCounter.hidden = true;
+        }
+      }
+
+      if (requests.length === 0) {
+        var trEmpty = document.createElement('tr');
+        var tdEmpty = document.createElement('td');
+        tdEmpty.colSpan = 7;
+        tdEmpty.style.textAlign = 'center';
+        tdEmpty.style.padding = '24px';
+        tdEmpty.style.color = '#64748b';
+        tdEmpty.textContent = 'Nenhuma solicitação de roteiro registrada no momento.';
+        trEmpty.appendChild(tdEmpty);
+        reqsTbody.appendChild(trEmpty);
+      } else {
+        requests.forEach(function (req) {
+          var tr = document.createElement('tr');
+
+          // 1. Data/Hora
+          var tdDate = document.createElement('td');
+          var dateObj = new Date(req.createdAt || Date.now());
+          var formattedDate = isNaN(dateObj.getTime()) ? (req.createdAt || '') : dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+          tdDate.innerHTML = '<span style="font-size:12.5px;color:#475569;white-space:nowrap;">' + escapeHtml(formattedDate) + '</span>';
+
+          // 2. Viajante
+          var tdTraveler = document.createElement('td');
+          tdTraveler.className = 'corridor-name';
+          tdTraveler.innerHTML = '<strong>' + escapeHtml(req.travelerName) + '</strong><br><small style="color:#64748b;font-size:12px;">' + escapeHtml(req.travelerEmail) + '</small>';
+
+          // 3. Destino
+          var tdDestino = document.createElement('td');
+          tdDestino.innerHTML = '<strong>' + escapeHtml(req.destino) + '</strong>';
+
+          // 4. Época & Duração
+          var tdPeriodo = document.createElement('td');
+          tdPeriodo.innerHTML = escapeHtml(req.epoca) + '<br><small style="color:#64748b;font-size:12px;">' + escapeHtml(req.duracao) + '</small>';
+
+          // 5. Estilo
+          var tdEstilo = document.createElement('td');
+          tdEstilo.style.fontSize = '13px';
+          tdEstilo.textContent = req.estilo;
+
+          // 6. Status
+          var tdStatus = document.createElement('td');
+          var pill = document.createElement('span');
+          var st = req.status || 'Pendente';
+          pill.className = 'req-status-pill ' + (st === 'Atendido' ? 'is-completed' : (st === 'Em Análise' ? 'is-analyzing' : 'is-pending'));
+          pill.textContent = st;
+          tdStatus.appendChild(pill);
+
+          // 7. Ações
+          var tdActions = document.createElement('td');
+          var actionsWrap = document.createElement('div');
+          actionsWrap.className = 'admin-req-actions-cell';
+
+          var selectStatus = document.createElement('select');
+          selectStatus.className = 'admin-req-status-select';
+          selectStatus.setAttribute('aria-label', 'Alterar status da solicitação');
+          ['Pendente', 'Em Análise', 'Atendido'].forEach(function (optVal) {
+            var opt = document.createElement('option');
+            opt.value = optVal;
+            opt.textContent = optVal;
+            if (optVal === st) opt.selected = true;
+            selectStatus.appendChild(opt);
+          });
+
+          selectStatus.addEventListener('change', function () {
+            req.status = selectStatus.value;
+            saveLocalRouteRequests(requests);
+            syncRouteRequestToCloud(req, requests);
+            renderAdminTables();
+          });
+
+          var delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'btn-card-admin is-danger';
+          delBtn.textContent = 'Excluir';
+          delBtn.addEventListener('click', function () {
+            if (confirm('Deseja excluir a solicitação de roteiro de ' + req.travelerName + '?')) {
+              var remaining = requests.filter(function (item) {
+                return item.id !== req.id;
+              });
+              saveLocalRouteRequests(remaining);
+              deleteRouteRequestCloud(req.id, remaining);
+              renderAdminTables();
+            }
+          });
+
+          actionsWrap.appendChild(selectStatus);
+          actionsWrap.appendChild(delBtn);
+          tdActions.appendChild(actionsWrap);
+
+          tr.appendChild(tdDate);
+          tr.appendChild(tdTraveler);
+          tr.appendChild(tdDestino);
+          tr.appendChild(tdPeriodo);
+          tr.appendChild(tdEstilo);
+          tr.appendChild(tdStatus);
+          tr.appendChild(tdActions);
+          reqsTbody.appendChild(tr);
+        });
+      }
+    }
   }
 
   /* Admin Tabs Navigation */
@@ -2583,12 +2946,9 @@
       document.querySelectorAll('[data-admin-tab]').forEach(function (b) {
         b.classList.toggle('is-active', b === btn);
       });
-      var paneEditor = document.getElementById('admin-tab-editor');
-      var paneAccounts = document.getElementById('admin-tab-accounts');
-      var paneCloud = document.getElementById('admin-tab-cloud');
-      if (paneEditor) paneEditor.hidden = target !== 'editor';
-      if (paneAccounts) paneAccounts.hidden = target !== 'accounts';
-      if (paneCloud) paneCloud.hidden = target !== 'cloud';
+      document.querySelectorAll('.admin-tab-pane').forEach(function (pane) {
+        pane.hidden = pane.id !== ('admin-tab-' + target);
+      });
     });
   });
 
@@ -3356,15 +3716,38 @@
     });
   }
 
+  /* Gate buttons in #planejar */
+  var btnPlannerLogin = document.getElementById('btn-planner-login');
+  var btnPlannerRegister = document.getElementById('btn-planner-register');
+  if (btnPlannerLogin) {
+    btnPlannerLogin.addEventListener('click', function () {
+      openAuthModal('login');
+    });
+  }
+  if (btnPlannerRegister) {
+    btnPlannerRegister.addEventListener('click', function () {
+      openAuthModal('register');
+    });
+  }
+
   var form = document.getElementById('bespoke-planner-form');
   var statusEl = document.getElementById('planner-status');
   if (form && statusEl) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+
+      var session = getActiveSession();
+      if (!session || !session.email) {
+        statusEl.textContent = 'Apenas pessoas com conta conseguem solicitar o roteiro. Conecte-se ou crie sua conta gratuitamente.';
+        statusEl.classList.add('is-error');
+        openAuthModal('login');
+        return;
+      }
+
       var nomeInput = document.getElementById('input-nome');
       var emailInput = document.getElementById('input-email');
-      var nome = nomeInput ? nomeInput.value.trim() : '';
-      var email = emailInput ? emailInput.value.trim() : '';
+      var nome = nomeInput ? nomeInput.value.trim() : (session.name || '');
+      var email = emailInput ? emailInput.value.trim() : (session.email || '');
 
       if (!nome) {
         statusEl.textContent = 'Informe seu nome para personalizar o dossiê de viagem.';
@@ -3380,8 +3763,33 @@
         return;
       }
 
+      var destinoVal = (inputDestino && inputDestino.value.trim()) || 'Ilhas Gregas';
+      var epocaVal = (inputEpoca && inputEpoca.value.trim()) || 'Maio a Junho';
+      var estiloVal = (inputEstilo && inputEstilo.value.trim()) || 'Veleiro & Vilas Costeiras';
+      var duracaoVal = (inputDuracao && inputDuracao.value.trim()) || '8 a 9 dias';
+
+      var newReq = {
+        id: 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+        travelerId: session.id || ('usr_' + Date.now()),
+        travelerName: nome,
+        travelerEmail: email,
+        destino: destinoVal,
+        epoca: epocaVal,
+        estilo: estiloVal,
+        duracao: duracaoVal,
+        status: 'Pendente',
+        createdAt: new Date().toISOString()
+      };
+
+      var allReqs = loadLocalRouteRequests();
+      allReqs.unshift(newReq);
+      saveLocalRouteRequests(allReqs);
+      syncRouteRequestToCloud(newReq, allReqs);
+
       statusEl.classList.remove('is-error');
-      statusEl.textContent = 'Briefing registrado para ' + nome + ' (' + inputDestino.value + ' · ' + inputEpoca.value + '). Nossa curadoria enviará a proposta para ' + email + '.';
+      statusEl.innerHTML = '<strong>Solicitação enviada com sucesso, ' + escapeHtml(nome) + '!</strong> Seu dossiê sob medida para <em>' + escapeHtml(destinoVal) + '</em> está sendo preparado por nossos curadores. Enviaremos a proposta para <u>' + escapeHtml(email) + '</u>.';
+
+      renderAdminTables();
     });
   }
 
@@ -3525,5 +3933,8 @@
     if (currentOpenPost) {
       renderSubpageComments(currentOpenPost.id);
     }
+  });
+  fetchRouteRequestsFromCloud(function () {
+    renderAdminTables();
   });
 })();
