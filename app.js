@@ -1,6 +1,16 @@
 (function () {
   'use strict';
 
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   /* ==========================================================================
      1. INITIAL DATA: ROUTES & EDITORIAL SUBPAGE POSTS
      ========================================================================== */
@@ -1338,6 +1348,7 @@
 
     renderPostsGrid();
     renderAdminTables();
+    checkAndSubmitPendingRouteRequest();
     if (currentOpenPost) {
       renderSubpageComments(currentOpenPost.id);
     }
@@ -2580,6 +2591,7 @@
     syncCategoryFilterPills(posts);
     renderPostsGrid();
     renderAdminTables();
+    checkAndSubmitPendingRouteRequest();
     if (currentOpenPost) {
       renderSubpageComments(currentOpenPost.id);
     }
@@ -3730,43 +3742,127 @@
     });
   }
 
-  var form = document.getElementById('bespoke-planner-form');
-  var statusEl = document.getElementById('planner-status');
-  if (form && statusEl) {
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
+  var isSubmittingPlanner = false;
 
-      var session = getActiveSession();
-      if (!session || !session.email) {
-        statusEl.textContent = 'Apenas pessoas com conta conseguem solicitar o roteiro. Conecte-se ou crie sua conta gratuitamente.';
-        statusEl.classList.add('is-error');
-        openAuthModal('login');
-        return;
+  function submitBespokePlannerRequest() {
+    if (isSubmittingPlanner) return false;
+    isSubmittingPlanner = true;
+    setTimeout(function () { isSubmittingPlanner = false; }, 400);
+
+    var statusEl = document.getElementById('planner-status');
+    var session = getActiveSession();
+    var nomeInput = document.getElementById('input-nome');
+    var emailInput = document.getElementById('input-email');
+
+    var nome = (nomeInput ? nomeInput.value.trim() : '');
+    var email = (emailInput ? emailInput.value.trim() : '');
+    if (session) {
+      if (!nome) nome = session.name || '';
+      if (!email) email = session.email || '';
+    }
+
+    var destinoVal = (inputDestino && inputDestino.value.trim()) || 'Ilhas Gregas';
+    var epocaVal = (inputEpoca && inputEpoca.value.trim()) || 'Maio a Junho';
+    var estiloVal = (inputEstilo && inputEstilo.value.trim()) || 'Veleiro & Vilas Costeiras';
+    var duracaoVal = (inputDuracao && inputDuracao.value.trim()) || '8 a 9 dias';
+
+    // Gate: ONLY authenticated users can request the custom route
+    if (!session || !session.email) {
+      try {
+        sessionStorage.setItem('vertice_pending_route_request', JSON.stringify({
+          destino: destinoVal,
+          epoca: epocaVal,
+          estilo: estiloVal,
+          duracao: duracaoVal,
+          nome: nome,
+          email: email
+        }));
+      } catch (e) {}
+
+      var loginEmailIn = document.getElementById('login-email');
+      var regEmailIn = document.getElementById('register-email');
+      var regNameIn = document.getElementById('register-name');
+      if (email) {
+        if (loginEmailIn) loginEmailIn.value = email;
+        if (regEmailIn) regEmailIn.value = email;
+      }
+      if (nome && regNameIn) {
+        regNameIn.value = nome;
       }
 
-      var nomeInput = document.getElementById('input-nome');
-      var emailInput = document.getElementById('input-email');
-      var nome = nomeInput ? nomeInput.value.trim() : (session.name || '');
-      var email = emailInput ? emailInput.value.trim() : (session.email || '');
+      if (statusEl) {
+        statusEl.textContent = 'Apenas pessoas com conta conseguem solicitar o roteiro. Conecte-se ou cadastre-se para confirmar sua solicitação!';
+        statusEl.classList.add('is-error');
+      }
+      openAuthModal('login');
+      return false;
+    }
 
-      if (!nome) {
+    if (!nome) {
+      if (statusEl) {
         statusEl.textContent = 'Informe seu nome para personalizar o dossiê de viagem.';
         statusEl.classList.add('is-error');
-        if (nomeInput) nomeInput.focus();
-        return;
       }
+      if (nomeInput) nomeInput.focus();
+      return false;
+    }
 
-      if (!email || email.indexOf('@') === -1) {
+    if (!email || email.indexOf('@') === -1) {
+      if (statusEl) {
         statusEl.textContent = 'Informe um endereço de e-mail válido (ex.: voce@dominio.com).';
         statusEl.classList.add('is-error');
-        if (emailInput) emailInput.focus();
-        return;
       }
+      if (emailInput) emailInput.focus();
+      return false;
+    }
 
-      var destinoVal = (inputDestino && inputDestino.value.trim()) || 'Ilhas Gregas';
-      var epocaVal = (inputEpoca && inputEpoca.value.trim()) || 'Maio a Junho';
-      var estiloVal = (inputEstilo && inputEstilo.value.trim()) || 'Veleiro & Vilas Costeiras';
-      var duracaoVal = (inputDuracao && inputDuracao.value.trim()) || '8 a 9 dias';
+    var newReq = {
+      id: 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      travelerId: session.id || ('usr_' + Date.now()),
+      travelerName: nome,
+      travelerEmail: email,
+      destino: destinoVal,
+      epoca: epocaVal,
+      estilo: estiloVal,
+      duracao: duracaoVal,
+      status: 'Pendente',
+      createdAt: new Date().toISOString()
+    };
+
+    var allReqs = loadLocalRouteRequests();
+    allReqs.unshift(newReq);
+    saveLocalRouteRequests(allReqs);
+    syncRouteRequestToCloud(newReq, allReqs);
+
+    if (statusEl) {
+      statusEl.classList.remove('is-error');
+      statusEl.innerHTML = '<span style="color:#34d399;font-weight:700;">✓ Roteiro solicitado com sucesso, ' + escapeHtml(nome) + '!</span> Nossa curadoria de rotas entrará em contato pelo e-mail <u>' + escapeHtml(email) + '</u> para apresentar a proposta sob medida.';
+    }
+
+    try {
+      sessionStorage.removeItem('vertice_pending_route_request');
+    } catch (e) {}
+
+    renderAdminTables();
+    return true;
+  }
+
+  function checkAndSubmitPendingRouteRequest() {
+    try {
+      var raw = sessionStorage.getItem('vertice_pending_route_request');
+      if (!raw) return;
+      var session = getActiveSession();
+      if (!session || !session.email) return;
+
+      sessionStorage.removeItem('vertice_pending_route_request');
+      var pending = JSON.parse(raw);
+
+      var nome = (pending && pending.nome) || session.name || 'Viajante';
+      var email = (pending && pending.email) || session.email;
+      var destinoVal = (pending && pending.destino) || (inputDestino && inputDestino.value.trim()) || 'Ilhas Gregas';
+      var epocaVal = (pending && pending.epoca) || (inputEpoca && inputEpoca.value.trim()) || 'Maio a Junho';
+      var estiloVal = (pending && pending.estilo) || (inputEstilo && inputEstilo.value.trim()) || 'Veleiro & Vilas Costeiras';
+      var duracaoVal = (pending && pending.duracao) || (inputDuracao && inputDuracao.value.trim()) || '8 a 9 dias';
 
       var newReq = {
         id: 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
@@ -3786,10 +3882,29 @@
       saveLocalRouteRequests(allReqs);
       syncRouteRequestToCloud(newReq, allReqs);
 
-      statusEl.classList.remove('is-error');
-      statusEl.innerHTML = '<strong>Solicitação enviada com sucesso, ' + escapeHtml(nome) + '!</strong> Seu dossiê sob medida para <em>' + escapeHtml(destinoVal) + '</em> está sendo preparado por nossos curadores. Enviaremos a proposta para <u>' + escapeHtml(email) + '</u>.';
-
+      var statusEl = document.getElementById('planner-status');
+      if (statusEl) {
+        statusEl.classList.remove('is-error');
+        statusEl.innerHTML = '<span style="color:#34d399;font-weight:700;">✓ Roteiro solicitado com sucesso, ' + escapeHtml(nome) + '!</span> Sua solicitação para <em>' + escapeHtml(destinoVal) + '</em> foi confirmada com sua conta cadastrada.';
+      }
       renderAdminTables();
+    } catch (e) {}
+  }
+
+  var form = document.getElementById('bespoke-planner-form');
+  var btnPlannerSubmit = document.getElementById('btn-submit-planner');
+
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      submitBespokePlannerRequest();
+    });
+  }
+
+  if (btnPlannerSubmit) {
+    btnPlannerSubmit.addEventListener('click', function (e) {
+      e.preventDefault();
+      submitBespokePlannerRequest();
     });
   }
 
