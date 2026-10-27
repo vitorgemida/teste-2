@@ -3458,6 +3458,9 @@
   }
 
   /* Hero HTML5 Background Video Autoplay & Loop Controller */
+  if (typeof window.__bootHeroVideo === 'function') {
+    window.__bootHeroVideo();
+  }
   var heroVideoContainer = document.querySelector('.r-hero-ocean-photo .easyhtml5video');
   var heroWebdriverPlate = document.querySelector('.r-hero-ocean-photo .hero-webdriver-comp-plate');
   var heroOceanVideo = document.getElementById('hero-ocean-video');
@@ -3469,6 +3472,23 @@
     heroOceanVideo.defaultMuted = true;
     heroOceanVideo.playsInline = true;
     heroOceanVideo.loop = true;
+    heroOceanVideo.disablePictureInPicture = true;
+    heroOceanVideo.disableRemotePlayback = true;
+    heroOceanVideo.removeAttribute('controls');
+    heroOceanVideo.setAttribute('controlslist', 'nodownload nofullscreen noremoteplayback nopictureinpicture');
+    heroOceanVideo.setAttribute('disablepictureinpicture', 'true');
+    heroOceanVideo.setAttribute('disableremoteplayback', 'true');
+    heroOceanVideo.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+      return false;
+    }, true);
+    if (heroVideoContainer) {
+      heroVideoContainer.style.pointerEvents = 'none';
+      heroVideoContainer.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+        return false;
+      }, true);
+    }
     heroOceanVideo.addEventListener('ended', function () {
       setTimeout(function () {
         heroOceanVideo.play().catch(function () {});
