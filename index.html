@@ -27,6 +27,23 @@
       v.defaultMuted = true;
       v.playsInline = true;
       v.loop = true;
+      v.disablePictureInPicture = true;
+      v.disableRemotePlayback = true;
+      v.removeAttribute('controls');
+      v.setAttribute('controlslist', 'nodownload nofullscreen noremoteplayback nopictureinpicture');
+      v.setAttribute('disablepictureinpicture', 'true');
+      v.setAttribute('disableremoteplayback', 'true');
+      v.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+        return false;
+      }, true);
+      if (container) {
+        container.style.pointerEvents = 'none';
+        container.addEventListener('contextmenu', function (e) {
+          e.preventDefault();
+          return false;
+        }, true);
+      }
       if (window.__HERO_VIDEO_B64 && !v.dataset.blobLoaded) {
         try {
           var bin = atob(window.__HERO_VIDEO_B64);
@@ -87,7 +104,7 @@
     <figure class="r-hero-ocean-photo" data-region="hero-ocean-photo">
       <!-- Start EasyHtml5Video.com BODY section -->
       <div class="easyhtml5video hero-video-container">
-        <video id="hero-ocean-video" class="hero-ocean-video" autoplay="autoplay" muted="muted" playsinline="playsinline" preload="auto" poster="eh5v.files/html5video/14273213_1080_1920_60fps.jpg" title="14273213_1080_1920_60fps-converted" loop="loop">
+        <video id="hero-ocean-video" class="hero-ocean-video" autoplay="autoplay" muted="muted" playsinline="playsinline" preload="auto" loop="loop" disablepictureinpicture="true" disableremoteplayback="true" controlslist="nodownload nofullscreen noremoteplayback nopictureinpicture" oncontextmenu="return false;" tabindex="-1" aria-hidden="true" poster="eh5v.files/html5video/14273213_1080_1920_60fps.jpg">
           <source src="eh5v.files/html5video/14273213_1080_1920_60fps.mp4" type="video/mp4" />
           <source src="eh5v.files/html5video/14273213_1080_1920_60fps.m4v" type="video/mp4" />
           <source src="eh5v.files/html5video/14273213_1080_1920_60fps.webm" type="video/webm" />
