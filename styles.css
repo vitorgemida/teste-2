@@ -1225,6 +1225,138 @@ a {
   color: #8fa9c9;
 }
 
+/* Planner Auth Gate & Logged Traveler Status */
+.planner-auth-gate {
+  background: #11223a;
+  border: 1px solid #27446b;
+  border-radius: 18px;
+  padding: 22px 26px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.planner-auth-gate[hidden] {
+  display: none !important;
+}
+
+.planner-auth-gate-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #93c5fd;
+  background: rgba(37, 99, 235, 0.2);
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  border-radius: 999px;
+  padding: 4px 12px;
+  width: fit-content;
+}
+
+.planner-auth-gate-content strong {
+  display: block;
+  font-size: 16.5px;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.planner-auth-gate-content p {
+  margin: 0 0 16px 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #c4d7ec;
+}
+
+.planner-auth-gate-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-gate-action {
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+.planner-logged-banner {
+  background: #0f2b48;
+  border: 1px solid #1e4a7a;
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.planner-logged-banner[hidden] {
+  display: none !important;
+}
+
+.planner-logged-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.planner-logged-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.planner-logged-details span {
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #93c5fd;
+  font-weight: 700;
+}
+
+.planner-logged-details strong {
+  font-size: 15px;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.planner-logged-details small {
+  font-size: 13px;
+  color: #b0c9e6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.planner-verified-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .planner-submit-row {
   margin-top: 24px;
   display: flex;
@@ -2841,6 +2973,129 @@ body.is-subpage-active #conta {
   overflow-x: auto;
 }
 
+/* Admin Requested Itineraries Tab */
+.admin-tab-counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: #3b82f6;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.admin-tab-counter[hidden] {
+  display: none !important;
+}
+
+.admin-tab-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.admin-requests-summary-pills {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.req-stat-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #132744;
+  border: 1px solid #2b476e;
+  color: #c4d7ec;
+  font-size: 13px;
+}
+
+.req-stat-pill strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.req-stat-pill.pill-amber {
+  border-color: #f59e0b;
+  color: #fde68a;
+}
+
+.req-stat-pill.pill-blue {
+  border-color: #3b82f6;
+  color: #bfdbfe;
+}
+
+.req-stat-pill.pill-emerald {
+  border-color: #10b981;
+  color: #a7f3d0;
+}
+
+.admin-requests-table th,
+.admin-requests-table td {
+  vertical-align: middle;
+}
+
+.req-status-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.req-status-pill.is-pending {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+
+.req-status-pill.is-analyzing {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.req-status-pill.is-completed {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.admin-req-actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-req-status-select {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #1e293b;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 150ms ease;
+}
+
+.admin-req-status-select:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
 .sql-helper-box {
   margin-top: 28px;
   padding: 22px;
@@ -3861,6 +4116,32 @@ body.is-subpage-active #conta {
     border-radius: 18px;
     background: #0c192c;
     border: 1px solid #1e3a5f;
+  }
+
+  .planner-auth-gate {
+    padding: 18px 16px;
+    border-radius: 16px;
+  }
+
+  .planner-logged-banner {
+    padding: 14px 16px;
+    border-radius: 14px;
+    flex-wrap: wrap;
+  }
+
+  .planner-auth-gate-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .planner-auth-gate-buttons .btn-gate-action {
+    width: 100%;
+    text-align: center;
+  }
+
+  .admin-tab-title-row {
+    flex-direction: column;
+    gap: 12px;
   }
 
   /* ------------------------------------------------------------------
