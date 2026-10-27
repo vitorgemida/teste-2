@@ -3981,6 +3981,29 @@
   }
 
   /* Hero HTML5 Background Video Autoplay & Loop Controller */
+  function disableMediaSessionTrackActions() {
+    if ('mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.playbackState = 'none';
+        if ('metadata' in navigator.mediaSession) {
+          navigator.mediaSession.metadata = null;
+        }
+        var actionsToRemove = ['nexttrack', 'previoustrack', 'seekforward', 'seekbackward', 'skipad'];
+        actionsToRemove.forEach(function (act) {
+          try {
+            navigator.mediaSession.setActionHandler(act, null);
+          } catch (e) {
+            try {
+              navigator.mediaSession.setActionHandler(act, function (evt) {
+                if (evt && typeof evt.stopPropagation === 'function') evt.stopPropagation();
+              });
+            } catch (e2) {}
+          }
+        });
+      } catch (err) {}
+    }
+  }
+
   if (typeof window.__bootHeroVideo === 'function') {
     window.__bootHeroVideo();
   }
@@ -4012,17 +4035,22 @@
         return false;
       }, true);
     }
-    heroOceanVideo.addEventListener('ended', function () {
-      setTimeout(function () {
-        heroOceanVideo.play().catch(function () {});
-      }, 300);
+
+    disableMediaSessionTrackActions();
+
+    ['play', 'playing', 'loadedmetadata', 'canplay'].forEach(function (evName) {
+      heroOceanVideo.addEventListener(evName, function () {
+        disableMediaSessionTrackActions();
+      });
     });
+
     var playPromise = heroOceanVideo.play();
     if (playPromise && typeof playPromise.catch === 'function') {
       playPromise.catch(function () {
         document.addEventListener('click', function resumeHeroVideoOnce() {
           heroOceanVideo.muted = true;
           heroOceanVideo.play().catch(function () {});
+          disableMediaSessionTrackActions();
           document.removeEventListener('click', resumeHeroVideoOnce);
         });
       });
